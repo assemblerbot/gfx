@@ -3,7 +3,7 @@ using Silk.NET.Windowing;
 
 namespace Gfx;
 
-public abstract class GfxApi : IDisposable
+public abstract class Api : IDisposable
 {
 	public static GraphicsBackend GetDefaultBackend()
 	{
@@ -25,11 +25,11 @@ public abstract class GfxApi : IDisposable
 		return GraphicsBackend.Vulkan;
 	}
 
-	public static GfxApi Create(GfxApiOptions options)
+	public static Api Create(ApiOptions options)
 	{
 		return options.Backend switch
 		{
-			GraphicsBackend.Vulkan => new VulkanGfxApi(options.Window, options.DebugMessageLog),
+			GraphicsBackend.Vulkan => new VulkanApi(options.Window, options.DebugMessageLog),
 			_ => throw new ArgumentOutOfRangeException(nameof(options.Backend), options.Backend, null)
 		};
 	}

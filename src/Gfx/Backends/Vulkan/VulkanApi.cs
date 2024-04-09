@@ -10,7 +10,7 @@ namespace Gfx;
 
 //using GfxPhysicalDevice = Gfx.PhysicalDevice;
 
-public sealed unsafe class VulkanGfxApi : GfxApi
+public sealed unsafe class VulkanApi : Api
 {
 	private static readonly string[] _validationLayers = 
 	{
@@ -18,7 +18,7 @@ public sealed unsafe class VulkanGfxApi : GfxApi
 	};
 
 	private readonly IWindow  _window;
-	private readonly Vk       _vk;
+	internal readonly Vk       Vk;
 	private          Instance _instance;
 
 	private ExtDebugUtils?                                          _debugUtils;
@@ -26,24 +26,22 @@ public sealed unsafe class VulkanGfxApi : GfxApi
 	private Action<DebugMessageSeverity, DebugMessageKind, string>? _debugMessageLog;
 	private bool                                                    IsDebugEnabled => _debugMessageLog != null;
 
-	private KhrSurface? _khrSurface;
-	private SurfaceKHR  _surface;
+	internal KhrSurface? KhrSurface;
+	internal SurfaceKHR  Surface;
 	
 	#region Lifecycle
-	internal VulkanGfxApi(
+	internal VulkanApi(
 		IWindow                                                 window,
 		Action<DebugMessageSeverity, DebugMessageKind, string>? debugMessageLog
 	)
 	{
 		_window          = window;
 		_debugMessageLog = debugMessageLog;
-		_vk              = Vk.GetApi();
+		Vk              = Vk.GetApi();
 
 		CreateInstance();
 		SetupDebugMessenger();
 		CreateSurface();
-
-		_vk.GetPhysicalDeviceProperties(new Silk.NET.Vulkan.PhysicalDevice(), out PhysicalDeviceProperties properties);
 	}
 
 	public override void Dispose()
@@ -53,17 +51,17 @@ public sealed unsafe class VulkanGfxApi : GfxApi
 			_debugUtils!.DestroyDebugUtilsMessenger(_instance, _debugMessenger, null);
 		}
 
-		_khrSurface?.DestroySurface(_instance, _surface, null);
-		_vk.DestroyInstance(_instance, null);
-		_vk.Dispose();
+		KhrSurface?.DestroySurface(_instance, Surface, null);
+		Vk.DestroyInstance(_instance, null);
+		Vk.Dispose();
 	}
 	#endregion Lifecycle
 
 	#region Base overrides
 	public override IReadOnlyList<PhysicalDevice> EnumeratePhysicalDevices()
 	{
-		IReadOnlyCollection<Silk.NET.Vulkan.PhysicalDevice>? devices = _vk.GetPhysicalDevices(_instance);
-		return devices.Where(IsDeviceSuitable).Select(device => new VulkanPhysicalDevice()).ToList();
+		IReadOnlyCollection<Silk.NET.Vulkan.PhysicalDevice> devices = Vk.GetPhysicalDevices(_instance);
+		return devices.Select<Silk.NET.Vulkan.PhysicalDevice, VulkanPhysicalDevice>(device => new VulkanPhysicalDevice(this, device)).ToList();
 	}
 
 	public override GraphicsDevice CreateGraphicsDevice(IView window, GraphicsDeviceOptions options)
@@ -120,7 +118,7 @@ public sealed unsafe class VulkanGfxApi : GfxApi
 			createInfo.PNext             = null;
 		}
 
-		if (_vk.CreateInstance(createInfo, null, out _instance) != Result.Success)
+		if (Vk.CreateInstance(createInfo, null, out _instance) != Result.Success)
 		{
 			throw new GfxException("Failed to create Vulkan instance!");
 		}
@@ -142,7 +140,7 @@ public sealed unsafe class VulkanGfxApi : GfxApi
 			return;
 		}
 
-		if (!_vk.TryGetInstanceExtension(_instance, out _debugUtils))
+		if (!Vk.TryGetInstanceExtension(_instance, out _debugUtils))
 		{
 			return;
 		}
@@ -158,22 +156,22 @@ public sealed unsafe class VulkanGfxApi : GfxApi
 
 	private void CreateSurface()
 	{
-		if (!_vk.TryGetInstanceExtension<KhrSurface>(_instance, out _khrSurface))
+		if (!Vk.TryGetInstanceExtension<KhrSurface>(_instance, out KhrSurface))
 		{
 			throw new GfxException("KHR_surface extension not found.");
 		}
 
-		_surface = _window.VkSurface!.Create<AllocationCallbacks>(_instance.ToHandle(), null).ToSurface();
+		Surface = _window.VkSurface!.Create<AllocationCallbacks>(_instance.ToHandle(), null).ToSurface();
 	}
 
 	private bool ValidationLayersSupported()
 	{
 		uint layerCount = 0;
-		_vk.EnumerateInstanceLayerProperties(ref layerCount, null);
+		Vk.EnumerateInstanceLayerProperties(ref layerCount, null);
 		var availableLayers = new LayerProperties[layerCount];
 		fixed (LayerProperties* availableLayersPtr = availableLayers)
 		{
-			_vk.EnumerateInstanceLayerProperties(ref layerCount, availableLayersPtr);
+			Vk.EnumerateInstanceLayerProperties(ref layerCount, availableLayersPtr);
 		}
 
 		HashSet<string?> availableLayerNames = availableLayers.Select(layer => { return Marshal.PtrToStringAnsi((IntPtr) layer.LayerName); }).ToHashSet();
@@ -216,17 +214,6 @@ public sealed unsafe class VulkanGfxApi : GfxApi
 		_debugMessageLog!.Invoke(messageSeverity.ToGfxDebugMessageSeverity(), messageTypes.ToGfxDebugMessageKind(), Marshal.PtrToStringAnsi((nint) pCallbackData->PMessage) ?? ""); 
 		return Vk.False;
 	}
-
-	private bool IsDeviceSuitable(Silk.NET.Vulkan.PhysicalDevice physicalDevice)
-	{
-		//VulkanQueueFamilyIndices indices = FindQueueFamilyIndices(physicalDevice);
-		return true;
-	}
-
-	// private VulkanQueueFamilyIndices FindQueueFamilyIndices(Silk.NET.Vulkan.PhysicalDevice physicalDevice)
-	// {
-	// 	
-	// }
 
 	#endregion
 }
