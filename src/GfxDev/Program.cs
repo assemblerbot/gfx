@@ -55,6 +55,11 @@ internal class GfxTestApplication
 	private void InitGraphicsDevice()
 	{
 		IReadOnlyList<PhysicalDevice> physicalDevices = _api!.EnumeratePhysicalDevices();
+
+		foreach (PhysicalDevice device in physicalDevices)
+		{
+			Console.WriteLine($"{device.Name} kind={device.Kind}");
+		}
 		
 		PhysicalDevice? best = physicalDevices.FirstOrDefault(device => device.Kind == PhysicalDeviceKind.DiscreteGpu);
 		best ??= physicalDevices.FirstOrDefault(device => device.Kind == PhysicalDeviceKind.IntegratedGpu);
