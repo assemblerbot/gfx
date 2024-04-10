@@ -7,13 +7,13 @@ public struct ApiOptions
 	public GraphicsBackend Backend;
 	public IWindow         Window;
 	
-	public Action<DebugMessageSeverity, DebugMessageKind, string>? DebugMessageLog; // if null, no validation layers will be enabled
+	public LogMessage? DebugMessageLog; // if null, no validation layers will be enabled
 
 	public ApiOptions(
 		GraphicsBackend backend,
 		IWindow         window,
 		
-		Action<DebugMessageSeverity, DebugMessageKind, string>? debugMessageLog = null
+		LogMessage? debugMessageLog = null
 	)
 	{
 		Backend         = backend;

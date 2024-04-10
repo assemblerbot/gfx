@@ -23,7 +23,7 @@ public sealed unsafe class VulkanApi : Api
 
 	private ExtDebugUtils?                                          _debugUtils;
 	private DebugUtilsMessengerEXT                                  _debugMessenger;
-	private Action<DebugMessageSeverity, DebugMessageKind, string>? _debugMessageLog;
+	private LogMessage? _debugMessageLog;
 	private bool                                                    IsDebugEnabled => _debugMessageLog != null;
 
 	internal KhrSurface? KhrSurface;
@@ -32,7 +32,7 @@ public sealed unsafe class VulkanApi : Api
 	#region Lifecycle
 	internal VulkanApi(
 		IWindow                                                 window,
-		Action<DebugMessageSeverity, DebugMessageKind, string>? debugMessageLog
+		LogMessage? debugMessageLog
 	)
 	{
 		_window          = window;
@@ -69,9 +69,9 @@ public sealed unsafe class VulkanApi : Api
 		// TODO
 		return new VulkanGraphicsDevice(options);
 	}
-	
+
 	#endregion Base overrides
-	
+
 	#region Private
 	private void CreateInstance()
 	{
