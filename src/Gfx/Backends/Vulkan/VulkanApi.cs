@@ -12,14 +12,14 @@ namespace Gfx;
 
 public sealed unsafe class VulkanApi : Api
 {
-	private readonly IWindow  _window;
+	internal readonly IWindow  Window;
 	internal readonly Vk       Vk;
-	private          Instance _instance;
+	internal readonly Instance Instance;
 
-	private ExtDebugUtils?                                          _debugUtils;
-	private DebugUtilsMessengerEXT                                  _debugMessenger;
-	private LogMessage? _debugMessageLog;
-	internal bool                                                    IsDebugEnabled => _debugMessageLog != null;
+	private          ExtDebugUtils?         _debugUtils;
+	private          DebugUtilsMessengerEXT _debugMessenger;
+	private readonly LogMessage?            _debugMessageLog;
+	internal         bool                   IsDebugEnabled => _debugMessageLog != null;
 
 	internal KhrSurface? KhrSurface;
 	internal SurfaceKHR  Surface;
@@ -30,11 +30,11 @@ public sealed unsafe class VulkanApi : Api
 		LogMessage? debugMessageLog
 	)
 	{
-		_window          = window;
+		Window          = window;
 		_debugMessageLog = debugMessageLog;
 		Vk              = Vk.GetApi();
 
-		CreateInstance();
+		CreateInstance(out Instance);
 		SetupDebugMessenger();
 		CreateSurface();
 	}
@@ -43,11 +43,11 @@ public sealed unsafe class VulkanApi : Api
 	{
 		if (IsDebugEnabled)
 		{
-			_debugUtils!.DestroyDebugUtilsMessenger(_instance, _debugMessenger, null);
+			_debugUtils!.DestroyDebugUtilsMessenger(Instance, _debugMessenger, null);
 		}
 
-		KhrSurface?.DestroySurface(_instance, Surface, null);
-		Vk.DestroyInstance(_instance, null);
+		KhrSurface?.DestroySurface(Instance, Surface, null);
+		Vk.DestroyInstance(Instance, null);
 		Vk.Dispose();
 	}
 	#endregion Lifecycle
@@ -55,7 +55,7 @@ public sealed unsafe class VulkanApi : Api
 	#region Base overrides
 	public override IReadOnlyList<PhysicalDevice> EnumeratePhysicalDevices()
 	{
-		IReadOnlyCollection<Silk.NET.Vulkan.PhysicalDevice> devices = Vk.GetPhysicalDevices(_instance);
+		IReadOnlyCollection<Silk.NET.Vulkan.PhysicalDevice> devices = Vk.GetPhysicalDevices(Instance);
 		return devices.Select<Silk.NET.Vulkan.PhysicalDevice, VulkanPhysicalDevice>(device => new VulkanPhysicalDevice(this, device)).ToList();
 	}
 
@@ -67,7 +67,7 @@ public sealed unsafe class VulkanApi : Api
 	#endregion Base overrides
 
 	#region Private
-	private void CreateInstance()
+	private void CreateInstance(out Instance instance)
 	{
 		if (IsDebugEnabled && !ValidationLayersSupported(VulkanValidationLayers.DebugValidationLayers))
 		{
@@ -77,11 +77,11 @@ public sealed unsafe class VulkanApi : Api
 		ApplicationInfo appInfo = new()
 		                          {
 			                          SType              = StructureType.ApplicationInfo,
-			                          PApplicationName   = (byte*)Marshal.StringToHGlobalAnsi(_window.Title),
+			                          PApplicationName   = (byte*)Marshal.StringToHGlobalAnsi(Window.Title),
 			                          ApplicationVersion = new Version32(1, 0, 0),
 			                          PEngineName        = (byte*)Marshal.StringToHGlobalAnsi("Gfx"),
 			                          EngineVersion      = new Version32(1,                                      0,                                      0),
-			                          ApiVersion         = new Version32((uint)_window.API.Version.MajorVersion, (uint)_window.API.Version.MinorVersion, 0U)
+			                          ApiVersion         = new Version32((uint)Window.API.Version.MajorVersion, (uint)Window.API.Version.MinorVersion, 0U)
 		                          };
 
 		InstanceCreateInfo createInfo = new()
@@ -112,7 +112,7 @@ public sealed unsafe class VulkanApi : Api
 			createInfo.PNext             = null;
 		}
 
-		if (Vk.CreateInstance(createInfo, null, out _instance) != Result.Success)
+		if (Vk.CreateInstance(createInfo, null, out instance) != Result.Success)
 		{
 			throw new GfxException("Failed to create Vulkan instance!");
 		}
@@ -134,7 +134,7 @@ public sealed unsafe class VulkanApi : Api
 			return;
 		}
 
-		if (!Vk.TryGetInstanceExtension(_instance, out _debugUtils))
+		if (!Vk.TryGetInstanceExtension(Instance, out _debugUtils))
 		{
 			return;
 		}
@@ -142,7 +142,7 @@ public sealed unsafe class VulkanApi : Api
 		DebugUtilsMessengerCreateInfoEXT createInfo = new();
 		PopulateDebugMessengerCreateInfo(ref createInfo);
 
-		if (_debugUtils!.CreateDebugUtilsMessenger(_instance, in createInfo, null, out _debugMessenger) != Result.Success)
+		if (_debugUtils!.CreateDebugUtilsMessenger(Instance, in createInfo, null, out _debugMessenger) != Result.Success)
 		{
 			throw new GfxException("Failed to set up debug messenger!");
 		}
@@ -150,12 +150,12 @@ public sealed unsafe class VulkanApi : Api
 
 	private void CreateSurface()
 	{
-		if (!Vk.TryGetInstanceExtension<KhrSurface>(_instance, out KhrSurface))
+		if (!Vk.TryGetInstanceExtension<KhrSurface>(Instance, out KhrSurface))
 		{
 			throw new GfxException("KHR_surface extension not found.");
 		}
 
-		Surface = _window.VkSurface!.Create<AllocationCallbacks>(_instance.ToHandle(), null).ToSurface();
+		Surface = Window.VkSurface!.Create<AllocationCallbacks>(Instance.ToHandle(), null).ToSurface();
 	}
 
 	private bool ValidationLayersSupported(string[] validationLayers)
@@ -175,7 +175,7 @@ public sealed unsafe class VulkanApi : Api
 
 	private string[] GetRequiredExtensions()
 	{
-		byte**    windowExtensions = _window!.VkSurface!.GetRequiredExtensions(out uint windowExtensionCount);
+		byte**    windowExtensions = Window!.VkSurface!.GetRequiredExtensions(out uint windowExtensionCount);
 		string[]? extensions       = SilkMarshal.PtrToStringArray((nint)windowExtensions, (int)windowExtensionCount);
 
 		if(RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
