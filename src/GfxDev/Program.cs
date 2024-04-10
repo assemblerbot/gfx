@@ -12,12 +12,17 @@ internal class GfxTestApplication
 	public        IWindow         NativeWindow => _window;
 	public        IView           View         => _window;
 
-	private Api? _api;
+	private Api?           _api;
+	private LogicalDevice? _logicalDevice;
 	
 	public void Run()
 	{
 		InitWindow();
 		_window.Run();
+
+		// this cannot be called from OnClose .. for some reason
+		_logicalDevice?.WaitIdle();
+		CleanUp();
 	}
 
 	private void InitWindow()
@@ -54,6 +59,7 @@ internal class GfxTestApplication
 
 	private void InitGraphicsDevice()
 	{
+		// physical device
 		IReadOnlyList<PhysicalDevice> physicalDevices = _api!.EnumeratePhysicalDevices();
 
 		foreach (PhysicalDevice device in physicalDevices)
@@ -61,17 +67,25 @@ internal class GfxTestApplication
 			Console.WriteLine($"{device.Name} kind={device.Kind}");
 		}
 		
-		PhysicalDevice? best = physicalDevices.FirstOrDefault(device => device.Kind == PhysicalDeviceKind.DiscreteGpu && device.SupportsGraphics);
-		best ??= physicalDevices.FirstOrDefault(device => device.Kind == PhysicalDeviceKind.IntegratedGpu && device.SupportsGraphics);
-		best ??= physicalDevices.FirstOrDefault(device => device.Kind == PhysicalDeviceKind.Cpu           && device.SupportsGraphics);
+		PhysicalDevice? bestPhysicalDevice = physicalDevices.FirstOrDefault(device => device.Kind == PhysicalDeviceKind.DiscreteGpu && device.SupportsGraphics);
+		bestPhysicalDevice ??= physicalDevices.FirstOrDefault(device => device.Kind == PhysicalDeviceKind.IntegratedGpu && device.SupportsGraphics);
+		bestPhysicalDevice ??= physicalDevices.FirstOrDefault(device => device.Kind == PhysicalDeviceKind.Cpu           && device.SupportsGraphics);
 
-		Console.WriteLine($"Selected physical device: {best?.Name}");
+		Console.WriteLine($"Selected physical device: {bestPhysicalDevice?.Name}");
+		if (bestPhysicalDevice == null)
+		{
+			return;
+		}
+
+		// logical device
+		_logicalDevice = _api!.CreateLogicalDevice(new LogicalDeviceOptions(bestPhysicalDevice));
 
 		//_api.CreateGraphicsDevice(_window, options);
 	}
 
 	private void CleanUp()
 	{
+		_logicalDevice?.Dispose();
 		_api?.Dispose();
 		_window.Dispose();
 	}
@@ -80,7 +94,7 @@ internal class GfxTestApplication
 	{
 	}
 
-	// main callbacks
+	#region Main callbacks
 	private void OnLoad()
 	{
 		InitGfx();
@@ -93,15 +107,14 @@ internal class GfxTestApplication
 
 	private void OnRender(double obj)
 	{
-		
 	}
 
 	private void OnClose()
 	{
-		CleanUp();
 	}
 
 	private void OnResize(Vector2D<int> obj)
 	{
 	}
+	#endregion Main callbacks
 }

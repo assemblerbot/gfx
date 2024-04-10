@@ -2,7 +2,7 @@ using Silk.NET.Vulkan;
 
 namespace Gfx;
 
-public static class VulkanGfxDebugMessageKindExtensions
+public static class VulkanDebugMessageKindExtensions
 {
 	public static DebugMessageKind ToGfxDebugMessageKind(this DebugUtilsMessageTypeFlagsEXT @this)
 	{

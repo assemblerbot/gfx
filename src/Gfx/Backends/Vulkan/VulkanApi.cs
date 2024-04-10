@@ -19,7 +19,7 @@ public sealed unsafe class VulkanApi : Api
 	private ExtDebugUtils?                                          _debugUtils;
 	private DebugUtilsMessengerEXT                                  _debugMessenger;
 	private LogMessage? _debugMessageLog;
-	private bool                                                    IsDebugEnabled => _debugMessageLog != null;
+	internal bool                                                    IsDebugEnabled => _debugMessageLog != null;
 
 	internal KhrSurface? KhrSurface;
 	internal SurfaceKHR  Surface;
@@ -59,10 +59,9 @@ public sealed unsafe class VulkanApi : Api
 		return devices.Select<Silk.NET.Vulkan.PhysicalDevice, VulkanPhysicalDevice>(device => new VulkanPhysicalDevice(this, device)).ToList();
 	}
 
-	public override GraphicsDevice CreateGraphicsDevice(IView window, GraphicsDeviceOptions options)
+	public override LogicalDevice CreateLogicalDevice(LogicalDeviceOptions options)
 	{
-		// TODO
-		return new VulkanGraphicsDevice(options);
+		return new VulkanLogicalDevice(this, options);
 	}
 
 	#endregion Base overrides

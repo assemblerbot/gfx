@@ -37,6 +37,5 @@ public abstract class Api : IDisposable
 	public abstract void Dispose();
 
 	public abstract IReadOnlyList<PhysicalDevice> EnumeratePhysicalDevices();
-	
-	public abstract GraphicsDevice CreateGraphicsDevice(IView window, GraphicsDeviceOptions options);
+	public abstract LogicalDevice                 CreateLogicalDevice(LogicalDeviceOptions options);
 }

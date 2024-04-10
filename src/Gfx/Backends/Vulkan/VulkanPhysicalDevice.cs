@@ -8,7 +8,7 @@ namespace Gfx;
 public unsafe class VulkanPhysicalDevice : PhysicalDevice
 {
 	private readonly VulkanApi                      _api;
-	private readonly Silk.NET.Vulkan.PhysicalDevice _physicalDevice;
+	public readonly Silk.NET.Vulkan.PhysicalDevice Device;
 
 	private PhysicalDeviceKind _kind = PhysicalDeviceKind.Other;
 	private string             _name = "";
@@ -36,11 +36,11 @@ public unsafe class VulkanPhysicalDevice : PhysicalDevice
 	
 	internal VulkanPhysicalDevice(
 		VulkanApi                      api,
-		Silk.NET.Vulkan.PhysicalDevice physicalDevice
+		Silk.NET.Vulkan.PhysicalDevice device
 	)
 	{
 		_api            = api;
-		_physicalDevice = physicalDevice;
+		Device = device;
 		
 		InitKind();
 		InitName();
@@ -56,7 +56,7 @@ public unsafe class VulkanPhysicalDevice : PhysicalDevice
 
 	private void InitKind()
 	{
-		_kind = _api.Vk.GetPhysicalDeviceProperty(_physicalDevice).DeviceType switch
+		_kind = _api.Vk.GetPhysicalDeviceProperty(Device).DeviceType switch
 		{
 			PhysicalDeviceType.Other         => PhysicalDeviceKind.Other,
 			PhysicalDeviceType.IntegratedGpu => PhysicalDeviceKind.IntegratedGpu,
@@ -69,7 +69,7 @@ public unsafe class VulkanPhysicalDevice : PhysicalDevice
 
 	private void InitName()
 	{
-		PhysicalDeviceProperties properties = _api.Vk.GetPhysicalDeviceProperty(_physicalDevice);
+		PhysicalDeviceProperties properties = _api.Vk.GetPhysicalDeviceProperty(Device);
 		_name = Marshal.PtrToStringAnsi((IntPtr)properties.DeviceName) ?? "unknown";
 	}
 
@@ -81,12 +81,12 @@ public unsafe class VulkanPhysicalDevice : PhysicalDevice
 		
 		{
 			uint queueFamilyCount = 0;
-			_api.Vk.GetPhysicalDeviceQueueFamilyProperties(_physicalDevice, ref queueFamilyCount, null);
+			_api.Vk.GetPhysicalDeviceQueueFamilyProperties(Device, ref queueFamilyCount, null);
 
 			var queueFamilies = new QueueFamilyProperties[queueFamilyCount];
 			fixed (QueueFamilyProperties* queueFamiliesPtr = queueFamilies)
 			{
-				_api.Vk.GetPhysicalDeviceQueueFamilyProperties(_physicalDevice, ref queueFamilyCount, queueFamiliesPtr);
+				_api.Vk.GetPhysicalDeviceQueueFamilyProperties(Device, ref queueFamilyCount, queueFamiliesPtr);
 			}
 
 			for(uint i=0;i <queueFamilies.Length;++i)
@@ -101,7 +101,7 @@ public unsafe class VulkanPhysicalDevice : PhysicalDevice
 					ComputeQueueFamily = i;
 				}
 				
-				_api.KhrSurface!.GetPhysicalDeviceSurfaceSupport(_physicalDevice, i, _api.Surface, out var presentSupport);
+				_api.KhrSurface!.GetPhysicalDeviceSurfaceSupport(Device, i, _api.Surface, out var presentSupport);
 				if (presentSupport)
 				{
 					PresentQueueFamily = i;
@@ -113,12 +113,12 @@ public unsafe class VulkanPhysicalDevice : PhysicalDevice
 	private void InitExtensionSupport()
 	{
 		uint extensionsCount = 0;
-		_api.Vk.EnumerateDeviceExtensionProperties(_physicalDevice, (byte*)null, ref extensionsCount, null);
+		_api.Vk.EnumerateDeviceExtensionProperties(Device, (byte*)null, ref extensionsCount, null);
 
 		var availableExtensions = new ExtensionProperties[extensionsCount];
 		fixed (ExtensionProperties* availableExtensionsPtr = availableExtensions)
 		{
-			_api.Vk.EnumerateDeviceExtensionProperties(_physicalDevice, (byte*)null, ref extensionsCount, availableExtensionsPtr);
+			_api.Vk.EnumerateDeviceExtensionProperties(Device, (byte*)null, ref extensionsCount, availableExtensionsPtr);
 		}
 
 		HashSet<string?> availableExtensionNames = availableExtensions.Select(extension => { return Marshal.PtrToStringAnsi((IntPtr) extension.ExtensionName); }).ToHashSet();
@@ -129,23 +129,23 @@ public unsafe class VulkanPhysicalDevice : PhysicalDevice
 
 	private void InitFeatures()
 	{
-		_api.Vk.GetPhysicalDeviceFeatures(_physicalDevice, out Features);
+		_api.Vk.GetPhysicalDeviceFeatures(Device, out Features);
 	}
 
 	private void InitSwapChainSupport()
 	{
 		VulkanSwapChainSupportDetails details = new();
-		_api.KhrSurface!.GetPhysicalDeviceSurfaceCapabilities(_physicalDevice, _api.Surface, out details.Capabilities);
+		_api.KhrSurface!.GetPhysicalDeviceSurfaceCapabilities(Device, _api.Surface, out details.Capabilities);
 
 		uint formatCount = 0;
-		_api.KhrSurface.GetPhysicalDeviceSurfaceFormats(_physicalDevice, _api.Surface, ref formatCount, null);
+		_api.KhrSurface.GetPhysicalDeviceSurfaceFormats(Device, _api.Surface, ref formatCount, null);
 
 		if (formatCount != 0)
 		{
 			details.Formats = new SurfaceFormatKHR[formatCount];
 			fixed (SurfaceFormatKHR* formatsPtr = details.Formats)
 			{
-				_api.KhrSurface.GetPhysicalDeviceSurfaceFormats(_physicalDevice, _api.Surface, ref formatCount, formatsPtr);
+				_api.KhrSurface.GetPhysicalDeviceSurfaceFormats(Device, _api.Surface, ref formatCount, formatsPtr);
 			}
 		}
 		else
@@ -154,14 +154,14 @@ public unsafe class VulkanPhysicalDevice : PhysicalDevice
 		}
 
 		uint presentModeCount = 0;
-		_api.KhrSurface.GetPhysicalDeviceSurfacePresentModes(_physicalDevice, _api.Surface, ref presentModeCount, null);
+		_api.KhrSurface.GetPhysicalDeviceSurfacePresentModes(Device, _api.Surface, ref presentModeCount, null);
 
 		if (presentModeCount != 0)
 		{
 			details.PresentModes = new PresentModeKHR[presentModeCount];
 			fixed (PresentModeKHR* formatsPtr = details.PresentModes)
 			{
-				_api.KhrSurface.GetPhysicalDeviceSurfacePresentModes(_physicalDevice, _api.Surface, ref presentModeCount, formatsPtr);
+				_api.KhrSurface.GetPhysicalDeviceSurfacePresentModes(Device, _api.Surface, ref presentModeCount, formatsPtr);
 			}
 
 		}
