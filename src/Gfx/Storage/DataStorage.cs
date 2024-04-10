@@ -6,7 +6,7 @@ public class DataStorage<T> : IDisposable
 {
     private readonly T[] _data;
     private readonly int[] _generations;
-    private readonly Stack<int> _freeList;
+    private readonly Stack<int> _freeIndices;
     
     private readonly int _capacity;
 
@@ -15,29 +15,29 @@ public class DataStorage<T> : IDisposable
         _capacity = capacity;
         _data = new T[capacity];
         _generations = new int[capacity];
-        _freeList = new Stack<int>(capacity);
+        _freeIndices = new Stack<int>(capacity);
 
         capacity--;
         while (capacity >= 0)
         {
-            _freeList.Push(capacity);
+            _freeIndices.Push(capacity);
             capacity--;
         }
     }
 
     public void Dispose()
     {
-        _freeList.Clear();
+        _freeIndices.Clear();
     }
 
-    public T? Get(Handle<T> handle)
+    public T? ByHandle(Handle<T> handle)
     {
         return IsValid(handle) ? _data[handle.Index] : default;
     }
 
     public Handle<T> Store(ref T data)
     {
-        int index = _freeList.Pop();
+        int index = _freeIndices.Pop();
         _data[index] = data;
         int generation = _generations[index];
 
@@ -52,7 +52,7 @@ public class DataStorage<T> : IDisposable
         }
 
         _generations[handle.Index] = handle.Generation + 1;
-        _freeList.Push(handle.Index);
+        _freeIndices.Push(handle.Index);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
