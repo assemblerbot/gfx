@@ -181,7 +181,7 @@ public sealed unsafe class VulkanApi : Api
 
 	private string[] GetRequiredExtensions()
 	{
-		byte**    windowExtensions = _window!.VkSurface!.GetRequiredExtensions(out var windowExtensionCount);
+		byte**    windowExtensions = _window!.VkSurface!.GetRequiredExtensions(out uint windowExtensionCount);
 		string[]? extensions       = SilkMarshal.PtrToStringArray((nint)windowExtensions, (int)windowExtensionCount);
 
 		if(RuntimeInformation.IsOSPlatform(OSPlatform.OSX))

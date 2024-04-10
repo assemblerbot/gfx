@@ -4,19 +4,19 @@ namespace Gfx;
 
 public static class VulkanGfxDebugMessageKindExtensions
 {
-	public static DebugMessageKind ToGfxDebugMessageKind(this DebugUtilsMessageTypeFlagsEXT type)
+	public static DebugMessageKind ToGfxDebugMessageKind(this DebugUtilsMessageTypeFlagsEXT @this)
 	{
-		if (type.HasFlag(DebugUtilsMessageTypeFlagsEXT.PerformanceBitExt))
+		if ((@this & DebugUtilsMessageTypeFlagsEXT.PerformanceBitExt) != 0)
 		{
 			return DebugMessageKind.Performance;
 		}
 
-		if (type.HasFlag(DebugUtilsMessageTypeFlagsEXT.ValidationBitExt))
+		if ((@this & DebugUtilsMessageTypeFlagsEXT.ValidationBitExt) != 0)
 		{
 			return DebugMessageKind.Validation;
 		}
 
-		if (type.HasFlag(DebugUtilsMessageTypeFlagsEXT.DeviceAddressBindingBitExt))
+		if ((@this & DebugUtilsMessageTypeFlagsEXT.DeviceAddressBindingBitExt) != 0)
 		{
 			return DebugMessageKind.Binding;
 		}
