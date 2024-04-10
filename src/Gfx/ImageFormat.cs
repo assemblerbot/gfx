@@ -2,16 +2,16 @@ namespace Gfx;
 
 public enum ImageFormat
 { 
-    Undefined = 0, // aaa
-    R4G4UnormPack8 = 1, // aaa
-    R4G4B4A4UnormPack16 = 2, // aaa
-    B4G4R4A4UnormPack16 = 3, // aaa
-    R5G6B5UnormPack16 = 4, // aaa
-    B5G6R5UnormPack16 = 5, // aaa
-    R5G5B5A1UnormPack16 = 6, // aaa
-    B5G5R5A1UnormPack16 = 7, // aaa
-    A1R5G5B5UnormPack16 = 8, // aaa
-    R8Unorm = 9, // aaa
+    Undefined = 0,
+    R4G4UnormPack8 = 1,
+    R4G4B4A4UnormPack16 = 2,
+    B4G4R4A4UnormPack16 = 3,
+    R5G6B5UnormPack16 = 4,
+    B5G6R5UnormPack16 = 5,
+    R5G5B5A1UnormPack16 = 6,
+    B5G5R5A1UnormPack16 = 7,
+    A1R5G5B5UnormPack16 = 8,
+    R8Unorm = 9,
     R8SNorm = 10, // 0x0000000A
     R8Uscaled = 11, // 0x0000000B
     R8Sscaled = 12, // 0x0000000C
