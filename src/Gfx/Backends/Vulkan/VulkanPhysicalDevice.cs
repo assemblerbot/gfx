@@ -10,17 +10,17 @@ public unsafe class VulkanPhysicalDevice : PhysicalDevice
 	private readonly VulkanApi                      _api;
 	public readonly Silk.NET.Vulkan.PhysicalDevice Device;
 
-	private PhysicalDeviceKind _kind = PhysicalDeviceKind.Other;
-	private string             _name = "";
+	private readonly PhysicalDeviceKind _kind;
+	private readonly string             _name;
 
-	internal uint? GraphicsQueueFamily { get; private set; }
-	internal uint? PresentQueueFamily  { get; private set; }
-	internal uint? ComputeQueueFamily  { get; private set; }
+	internal readonly uint? GraphicsQueueFamily;
+	internal readonly uint? PresentQueueFamily;
+	internal readonly uint? ComputeQueueFamily;
 
-	internal bool                           GraphicsExtensionsSupported = false;
-	internal VulkanSwapChainSupportDetails? SwapChainSupportDetails;
+	internal readonly bool                           GraphicsExtensionsSupported;
+	internal readonly VulkanSwapChainSupportDetails? SwapChainSupportDetails;
 
-	internal PhysicalDeviceFeatures Features;
+	internal readonly PhysicalDeviceFeatures Features;
 
 	public override PhysicalDeviceKind Kind => _kind;
 	public override string             Name => _name;
@@ -42,21 +42,22 @@ public unsafe class VulkanPhysicalDevice : PhysicalDevice
 		_api            = api;
 		Device = device;
 		
-		InitKind();
-		InitName();
-		InitQueueFamilies();
-		InitExtensionSupport();
-		InitFeatures();
+		InitKind(out _kind);
+		InitName(out _name);
+		InitQueueFamilies(out GraphicsQueueFamily, out PresentQueueFamily, out ComputeQueueFamily);
+		InitExtensionSupport(out GraphicsExtensionsSupported);
+		InitFeatures(out Features);
 		
 		if (GraphicsExtensionsSupported)
 		{
-			InitSwapChainSupport();
+			InitSwapChainSupport(out SwapChainSupportDetails);
 		}
 	}
 
-	private void InitKind()
+	#region Initialization
+	private void InitKind(out PhysicalDeviceKind kind)
 	{
-		_kind = _api.Vk.GetPhysicalDeviceProperty(Device).DeviceType switch
+		kind = _api.Vk.GetPhysicalDeviceProperty(Device).DeviceType switch
 		{
 			PhysicalDeviceType.Other         => PhysicalDeviceKind.Other,
 			PhysicalDeviceType.IntegratedGpu => PhysicalDeviceKind.IntegratedGpu,
@@ -67,17 +68,17 @@ public unsafe class VulkanPhysicalDevice : PhysicalDevice
 		};
 	}
 
-	private void InitName()
+	private void InitName(out string name)
 	{
 		PhysicalDeviceProperties properties = _api.Vk.GetPhysicalDeviceProperty(Device);
-		_name = Marshal.PtrToStringAnsi((IntPtr)properties.DeviceName) ?? "unknown";
+		name = Marshal.PtrToStringAnsi((IntPtr)properties.DeviceName) ?? "unknown";
 	}
 
-	private void InitQueueFamilies()
+	private void InitQueueFamilies(out uint? graphicsQueueFamily, out uint? presentQueueFamily, out uint? computeQueueFamily)
 	{
-		GraphicsQueueFamily = null;
-		PresentQueueFamily  = null;
-		ComputeQueueFamily  = null;
+		graphicsQueueFamily = null;
+		presentQueueFamily  = null;
+		computeQueueFamily  = null;
 		
 		{
 			uint queueFamilyCount = 0;
@@ -93,24 +94,24 @@ public unsafe class VulkanPhysicalDevice : PhysicalDevice
 			{
 				if (queueFamilies[i].QueueFlags.HasFlag(QueueFlags.GraphicsBit))
 				{
-					GraphicsQueueFamily = i;
+					graphicsQueueFamily = i;
 				}
 
 				if (queueFamilies[i].QueueFlags.HasFlag(QueueFlags.ComputeBit))
 				{
-					ComputeQueueFamily = i;
+					computeQueueFamily = i;
 				}
 				
 				_api.KhrSurface!.GetPhysicalDeviceSurfaceSupport(Device, i, _api.Surface, out var presentSupport);
 				if (presentSupport)
 				{
-					PresentQueueFamily = i;
+					presentQueueFamily = i;
 				}
 			}
 		}
 	}
 
-	private void InitExtensionSupport()
+	private void InitExtensionSupport(out bool graphicsExtensionsSupported)
 	{
 		uint extensionsCount = 0;
 		_api.Vk.EnumerateDeviceExtensionProperties(Device, (byte*)null, ref extensionsCount, null);
@@ -124,17 +125,17 @@ public unsafe class VulkanPhysicalDevice : PhysicalDevice
 		HashSet<string?> availableExtensionNames = availableExtensions.Select(extension => { return Marshal.PtrToStringAnsi((IntPtr) extension.ExtensionName); }).ToHashSet();
 
 		// checks
-		GraphicsExtensionsSupported = VulkanExtensions.GraphicsExtensions.All(availableExtensionNames.Contains);
+		graphicsExtensionsSupported = VulkanExtensions.GraphicsExtensions.All(availableExtensionNames.Contains);
 	}
 
-	private void InitFeatures()
+	private void InitFeatures(out PhysicalDeviceFeatures features)
 	{
-		_api.Vk.GetPhysicalDeviceFeatures(Device, out Features);
+		_api.Vk.GetPhysicalDeviceFeatures(Device, out features);
 	}
 
-	private void InitSwapChainSupport()
+	private void InitSwapChainSupport(out VulkanSwapChainSupportDetails details)
 	{
-		VulkanSwapChainSupportDetails details = new();
+		details = new VulkanSwapChainSupportDetails();
 		_api.KhrSurface!.GetPhysicalDeviceSurfaceCapabilities(Device, _api.Surface, out details.Capabilities);
 
 		uint formatCount = 0;
@@ -169,7 +170,6 @@ public unsafe class VulkanPhysicalDevice : PhysicalDevice
 		{
 			details.PresentModes = Array.Empty<PresentModeKHR>();
 		}
-
-		SwapChainSupportDetails = details;
 	}
+	#endregion
 }
