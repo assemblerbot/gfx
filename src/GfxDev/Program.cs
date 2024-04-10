@@ -56,12 +56,12 @@ internal class GfxTestApplication
 	{
 		IReadOnlyList<PhysicalDevice> physicalDevices = _api!.EnumeratePhysicalDevices();
 		
-		PhysicalDevice? best = physicalDevices.FirstOrDefault(device => device.Kind == PhysicalDeviceKind.DiscreteGpu);
-		best ??= physicalDevices.FirstOrDefault(device => device.Kind == PhysicalDeviceKind.IntegratedGpu);
-		best ??= physicalDevices.FirstOrDefault(device => device.Kind == PhysicalDeviceKind.Cpu);
-		
-		
-		
+		PhysicalDevice? best = physicalDevices.FirstOrDefault(device => device.Kind == PhysicalDeviceKind.DiscreteGpu && device.SupportsGraphics);
+		best ??= physicalDevices.FirstOrDefault(device => device.Kind == PhysicalDeviceKind.IntegratedGpu && device.SupportsGraphics);
+		best ??= physicalDevices.FirstOrDefault(device => device.Kind == PhysicalDeviceKind.Cpu           && device.SupportsGraphics);
+
+		Console.WriteLine($"Selected physical device: {best?.Name}");
+
 		//_api.CreateGraphicsDevice(_window, options);
 	}
 

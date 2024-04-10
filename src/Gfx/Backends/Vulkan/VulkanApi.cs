@@ -12,11 +12,6 @@ namespace Gfx;
 
 public sealed unsafe class VulkanApi : Api
 {
-	private static readonly string[] _validationLayers = 
-	{
-		"VK_LAYER_KHRONOS_validation",
-	};
-
 	private readonly IWindow  _window;
 	internal readonly Vk       Vk;
 	private          Instance _instance;
@@ -75,7 +70,7 @@ public sealed unsafe class VulkanApi : Api
 	#region Private
 	private void CreateInstance()
 	{
-		if (IsDebugEnabled && !ValidationLayersSupported())
+		if (IsDebugEnabled && !ValidationLayersSupported(VulkanValidationLayers.DebugValidationLayers))
 		{
 			throw new GfxException("Validation layers are not supported!");
 		}
@@ -105,8 +100,8 @@ public sealed unsafe class VulkanApi : Api
 		
 		if (IsDebugEnabled)
 		{
-			createInfo.EnabledLayerCount   = (uint)_validationLayers.Length;
-			createInfo.PpEnabledLayerNames = (byte**)SilkMarshal.StringArrayToPtr(_validationLayers);
+			createInfo.EnabledLayerCount   = (uint)VulkanValidationLayers.DebugValidationLayers.Length;
+			createInfo.PpEnabledLayerNames = (byte**)SilkMarshal.StringArrayToPtr(VulkanValidationLayers.DebugValidationLayers);
 
 			DebugUtilsMessengerCreateInfoEXT debugCreateInfo = new();
 			PopulateDebugMessengerCreateInfo(ref debugCreateInfo);
@@ -164,7 +159,7 @@ public sealed unsafe class VulkanApi : Api
 		Surface = _window.VkSurface!.Create<AllocationCallbacks>(_instance.ToHandle(), null).ToSurface();
 	}
 
-	private bool ValidationLayersSupported()
+	private bool ValidationLayersSupported(string[] validationLayers)
 	{
 		uint layerCount = 0;
 		Vk.EnumerateInstanceLayerProperties(ref layerCount, null);
@@ -176,7 +171,7 @@ public sealed unsafe class VulkanApi : Api
 
 		HashSet<string?> availableLayerNames = availableLayers.Select(layer => { return Marshal.PtrToStringAnsi((IntPtr) layer.LayerName); }).ToHashSet();
 
-		return _validationLayers.All(availableLayerNames.Contains);
+		return validationLayers.All(availableLayerNames.Contains);
 	}
 
 	private string[] GetRequiredExtensions()
