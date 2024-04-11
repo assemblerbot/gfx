@@ -31,7 +31,7 @@ public unsafe class VulkanLogicalDevice : LogicalDevice
 		_physicalDevice = (VulkanPhysicalDevice)options.PhysicalDevice;
 
 		InitDeviceAndQueues(out _device, out _graphicsQueue, out _presentQueue);
-		InitSwapChain(ref _khrSwapChain, ref _swapChain, ref _swapChainImages, ref _swapChainImageFormat, ref _swapChainExtent);
+		InitSwapChain(options.FrameBufferFormat, ref _khrSwapChain, ref _swapChain, ref _swapChainImages, ref _swapChainImageFormat, ref _swapChainExtent);
 	}
 
 	public override void Dispose()
@@ -127,6 +127,7 @@ public unsafe class VulkanLogicalDevice : LogicalDevice
 	}
 	
 	private void InitSwapChain(
+		ImageFormat desiredFormat,
 		ref KhrSwapchain? khrSwapChain,
 		ref SwapchainKHR  swapChain,
 		ref Image[]?      swapChainImages,
@@ -136,7 +137,7 @@ public unsafe class VulkanLogicalDevice : LogicalDevice
 	{
 		VulkanSwapChainSupportDetails swapChainSupport = _physicalDevice.SwapChainSupportDetails!;
 
-		var surfaceFormat = ChooseSwapSurfaceFormat(swapChainSupport.Formats);
+		var surfaceFormat = ChooseSwapSurfaceFormat(swapChainSupport.Formats, desiredFormat.ToVulkan());
 		var presentMode   = ChoosePresentMode(swapChainSupport.PresentModes);
 		var extent        = ChooseSwapExtent(swapChainSupport.Capabilities);
 
@@ -206,12 +207,11 @@ public unsafe class VulkanLogicalDevice : LogicalDevice
 		swapChainExtent      = extent;
 	}
 
-	private SurfaceFormatKHR ChooseSwapSurfaceFormat(IReadOnlyList<SurfaceFormatKHR> availableFormats)
+	private SurfaceFormatKHR ChooseSwapSurfaceFormat(IReadOnlyList<SurfaceFormatKHR> availableFormats, Format desiredFormat)
 	{
 		foreach (var availableFormat in availableFormats)
 		{
-			// TODO - format selection
-			if (availableFormat.Format == Format.B8G8R8A8Srgb && availableFormat.ColorSpace == ColorSpaceKHR.SpaceSrgbNonlinearKhr)
+			if (availableFormat.Format == desiredFormat && availableFormat.ColorSpace == ColorSpaceKHR.SpaceSrgbNonlinearKhr)
 			{
 				return availableFormat;
 			}

@@ -3,9 +3,11 @@ namespace Gfx;
 public struct LogicalDeviceOptions
 {
 	public PhysicalDevice PhysicalDevice;
+	public ImageFormat    FrameBufferFormat;
 
-	public LogicalDeviceOptions(PhysicalDevice physicalDevice)
+	public LogicalDeviceOptions(PhysicalDevice physicalDevice, ImageFormat frameBufferFormat)
 	{
-		PhysicalDevice = physicalDevice;
+		PhysicalDevice    = physicalDevice;
+		FrameBufferFormat = frameBufferFormat;
 	}
 }
