@@ -23,7 +23,7 @@ public unsafe class VulkanLogicalDevice : LogicalDevice
 	private Format         _swapChainImageFormat;
 	private Extent2D       _swapChainExtent;
 	private ImageView[]?   _swapChainImageViews;
-	// private Framebuffer[]? _swapChainFramebuffers;
+	//private Framebuffer[]? _swapChainFramebuffers;
     
 	internal VulkanLogicalDevice(VulkanApi api, LogicalDeviceOptions options)
 	{
@@ -32,7 +32,8 @@ public unsafe class VulkanLogicalDevice : LogicalDevice
 
 		InitDeviceAndQueues(out _device, out _graphicsQueue, out _presentQueue);
 		InitSwapChain(options.FrameBufferFormat, ref _khrSwapChain, ref _swapChain, ref _swapChainImages, ref _swapChainImageFormat, ref _swapChainExtent);
-		InitImageViews(ref _swapChainImageViews);
+		InitImageViews(out _swapChainImageViews);
+		//InitFrameBuffers(out _swapChainFramebuffers);
 	}
 
 	public override void Dispose()
@@ -208,7 +209,7 @@ public unsafe class VulkanLogicalDevice : LogicalDevice
 		swapChainExtent      = extent;
 	}
 
-	private void InitImageViews(ref ImageView[]? imageViews)
+	private void InitImageViews(out ImageView[]? imageViews)
 	{
 		imageViews = new ImageView[_swapChainImages!.Length];
 
@@ -217,6 +218,35 @@ public unsafe class VulkanLogicalDevice : LogicalDevice
 			imageViews[i] = CreateImageView(_swapChainImages[i], _swapChainImageFormat, ImageAspectFlags.ColorBit, 1);
 		}
 	}
+	
+	// TODO - this has dependency on render pass, cannot be used as simple init function hidden inside device
+	/*
+	private void InitFrameBuffers(out Framebuffer[]? frameBuffers)
+	{
+		frameBuffers = new Framebuffer[_swapChainImageViews!.Length];
+
+		for (int i = 0; i < _swapChainImageViews.Length; i++)
+		{
+			ImageView attachment = _swapChainImageViews[i];
+
+			FramebufferCreateInfo framebufferInfo = new()
+			                                        {
+				                                        SType           = StructureType.FramebufferCreateInfo,
+				                                        RenderPass      = renderPass,
+				                                        AttachmentCount = 1,
+				                                        PAttachments    = &attachment,
+				                                        Width           = _swapChainExtent.Width,
+				                                        Height          = _swapChainExtent.Height,
+				                                        Layers          = 1,
+			                                        };
+
+			if (_api.Vk.CreateFramebuffer(_device, framebufferInfo, null, out frameBuffers[i]) != Result.Success)
+			{
+				throw new Exception("failed to create framebuffer!");
+			}
+		}
+	}
+	*/
 	#endregion
 	
 	#region Initialization helpers
