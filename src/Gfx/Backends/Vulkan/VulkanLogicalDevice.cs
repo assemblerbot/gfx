@@ -22,7 +22,7 @@ public unsafe class VulkanLogicalDevice : LogicalDevice
 	private Image[]?       _swapChainImages;
 	private Format         _swapChainImageFormat;
 	private Extent2D       _swapChainExtent;
-	// private ImageView[]?   _swapChainImageViews;
+	private ImageView[]?   _swapChainImageViews;
 	// private Framebuffer[]? _swapChainFramebuffers;
     
 	internal VulkanLogicalDevice(VulkanApi api, LogicalDeviceOptions options)
@@ -32,6 +32,7 @@ public unsafe class VulkanLogicalDevice : LogicalDevice
 
 		InitDeviceAndQueues(out _device, out _graphicsQueue, out _presentQueue);
 		InitSwapChain(options.FrameBufferFormat, ref _khrSwapChain, ref _swapChain, ref _swapChainImages, ref _swapChainImageFormat, ref _swapChainExtent);
+		InitImageViews(ref _swapChainImageViews);
 	}
 
 	public override void Dispose()
@@ -41,10 +42,10 @@ public unsafe class VulkanLogicalDevice : LogicalDevice
 		// 	_api.Vk!.DestroyFramebuffer(_device, framebuffer, null);
 		// }
 		
-		// foreach (var imageView in _swapChainImageViews!)
-		// {
-		// 	_api.Vk.DestroyImageView(_device, imageView, null);
-		// }
+		foreach (var imageView in _swapChainImageViews!)
+		{
+			_api.Vk.DestroyImageView(_device, imageView, null);
+		}
 		
 		_khrSwapChain!.DestroySwapchain(_device, _swapChain, null);
 
@@ -141,7 +142,7 @@ public unsafe class VulkanLogicalDevice : LogicalDevice
 		var presentMode   = ChoosePresentMode(swapChainSupport.PresentModes);
 		var extent        = ChooseSwapExtent(swapChainSupport.Capabilities);
 
-		var imageCount = swapChainSupport.Capabilities.MinImageCount + 1;
+		var imageCount = swapChainSupport.Capabilities.MinImageCount + 1; // TODO - required image count from options
 		if (swapChainSupport.Capabilities.MaxImageCount > 0 && imageCount > swapChainSupport.Capabilities.MaxImageCount)
 		{
 			imageCount = swapChainSupport.Capabilities.MaxImageCount;
@@ -207,6 +208,18 @@ public unsafe class VulkanLogicalDevice : LogicalDevice
 		swapChainExtent      = extent;
 	}
 
+	private void InitImageViews(ref ImageView[]? imageViews)
+	{
+		imageViews = new ImageView[_swapChainImages!.Length];
+
+		for (int i = 0; i < _swapChainImages.Length; i++)
+		{
+			imageViews[i] = CreateImageView(_swapChainImages[i], _swapChainImageFormat, ImageAspectFlags.ColorBit, 1);
+		}
+	}
+	#endregion
+	
+	#region Initialization helpers
 	private SurfaceFormatKHR ChooseSwapSurfaceFormat(IReadOnlyList<SurfaceFormatKHR> availableFormats, Format desiredFormat)
 	{
 		foreach (var availableFormat in availableFormats)
@@ -252,6 +265,39 @@ public unsafe class VulkanLogicalDevice : LogicalDevice
 		actualExtent.Height = Math.Clamp(actualExtent.Height, capabilities.MinImageExtent.Height, capabilities.MaxImageExtent.Height);
 
 		return actualExtent;
+	}
+	
+	private ImageView CreateImageView(Image image, Format format, ImageAspectFlags aspectFlags, uint mipLevels)
+	{
+		ImageViewCreateInfo createInfo = new()
+		                                 {
+			                                 SType    = StructureType.ImageViewCreateInfo,
+			                                 Image    = image,
+			                                 ViewType = ImageViewType.Type2D,
+			                                 Format   = format,
+			                                 //Components =
+			                                 //    {
+			                                 //        R = ComponentSwizzle.Identity,
+			                                 //        G = ComponentSwizzle.Identity,
+			                                 //        B = ComponentSwizzle.Identity,
+			                                 //        A = ComponentSwizzle.Identity,
+			                                 //    },
+			                                 SubresourceRange =
+			                                 {
+				                                 AspectMask     = aspectFlags,
+				                                 BaseMipLevel   = 0,
+				                                 LevelCount     = mipLevels,
+				                                 BaseArrayLayer = 0,
+				                                 LayerCount     = 1,
+			                                 }
+		                                 };
+
+		if (_api.Vk.CreateImageView(_device, createInfo, null, out ImageView imageView) != Result.Success)
+		{
+			throw new GfxException("Failed to create image view!");
+		}
+
+		return imageView;
 	}
 	#endregion
 }
