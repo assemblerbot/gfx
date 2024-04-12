@@ -16,21 +16,21 @@ public unsafe class VulkanLogicalDevice : LogicalDevice
 	private readonly VulkanApi            _api;
 	private readonly VulkanPhysicalDevice _physicalDevice;
     
-	private readonly Device _device;
+	internal readonly Device Device;
 	private readonly Queue  _graphicsQueue;
 	private readonly Queue  _presentQueue;
 
-	private readonly SampleCountFlags _msaaSampleCount;
+	internal readonly SampleCountFlags MsaaSampleCount;
 	
-	private KhrSwapchain? _khrSwapChain;
-	private SwapchainKHR  _swapChain;
-	private Image[]?      _swapChainImages;
-	private Format        _swapChainImageFormat;
-	private Format        _swapChainDepthStencilFormat;
-	private Extent2D      _swapChainExtent;
-	private ImageView[]?  _swapChainImageViews;
+	private  KhrSwapchain? _khrSwapChain;
+	private  SwapchainKHR  _swapChain;
+	private  Image[]?      _swapChainImages;
+	internal Format        SwapChainImageFormat;
+	internal Format        SwapChainDepthStencilFormat;
+	private  Extent2D      _swapChainExtent;
+	private  ImageView[]?  _swapChainImageViews;
 	//private Framebuffer[]? _swapChainFramebuffers;
-	private bool HasDepthStencil => _swapChainDepthStencilFormat != Format.Undefined;
+	internal bool HasDepthStencil => SwapChainDepthStencilFormat != Format.Undefined;
 
 	private Image        _colorImage;
 	private DeviceMemory _colorImageMemory;
@@ -53,9 +53,9 @@ public unsafe class VulkanLogicalDevice : LogicalDevice
 		_physicalDevice    = (VulkanPhysicalDevice)options.PhysicalDevice;
 		_maxFramesInFlight = options.MaxFramesInFlight;
 
-		InitDeviceAndQueues(out _device, out _graphicsQueue, out _presentQueue);
-		InitMsaaSampleCount(out _msaaSampleCount, options.MsaaSampleCount);
-		InitSwapChain(options.FrameBufferFormat, options.NeedDepthStencil, ref _khrSwapChain, ref _swapChain, ref _swapChainImages, ref _swapChainImageFormat, ref _swapChainDepthStencilFormat, ref _swapChainExtent);
+		InitDeviceAndQueues(out Device, out _graphicsQueue, out _presentQueue);
+		InitMsaaSampleCount(out MsaaSampleCount, options.MsaaSampleCount);
+		InitSwapChain(options.FrameBufferFormat, options.NeedDepthStencil, ref _khrSwapChain, ref _swapChain, ref _swapChainImages, ref SwapChainImageFormat, ref SwapChainDepthStencilFormat, ref _swapChainExtent);
 		InitImageViews(out _swapChainImageViews);
 		//InitFrameBuffers(out _swapChainFramebuffers);
 		InitColorResources(ref _colorImage, ref _colorImageMemory, ref _colorImageView);
@@ -68,9 +68,9 @@ public unsafe class VulkanLogicalDevice : LogicalDevice
 	{
 		if (HasDepthStencil)
 		{
-			_api.Vk.DestroyImageView(_device, _depthImageView, null);
-			_api.Vk.DestroyImage(_device, _depthImage, null);
-			_api.Vk.FreeMemory(_device, _depthImageMemory, null);
+			_api.Vk.DestroyImageView(Device, _depthImageView, null);
+			_api.Vk.DestroyImage(Device, _depthImage, null);
+			_api.Vk.FreeMemory(Device, _depthImageMemory, null);
 		}
 
 		// foreach (var framebuffer in _swapChainFramebuffers!)
@@ -80,10 +80,10 @@ public unsafe class VulkanLogicalDevice : LogicalDevice
 		
 		foreach (var imageView in _swapChainImageViews!)
 		{
-			_api.Vk.DestroyImageView(_device, imageView, null);
+			_api.Vk.DestroyImageView(Device, imageView, null);
 		}
 
-		_khrSwapChain!.DestroySwapchain(_device, _swapChain, null);
+		_khrSwapChain!.DestroySwapchain(Device, _swapChain, null);
 
 		// for (int i = 0; i < _swapChainImages!.Length; i++)
 		// {
@@ -98,21 +98,26 @@ public unsafe class VulkanLogicalDevice : LogicalDevice
 
 		for (int i = 0; i < _maxFramesInFlight; ++i)
 		{
-			_api.Vk.DestroySemaphore(_device, _renderFinishedSemaphores![i], null);
-			_api.Vk.DestroySemaphore(_device, _imageAvailableSemaphores![i], null);
-			_api.Vk.DestroyFence(_device, _inFlightFences![i], null);
+			_api.Vk.DestroySemaphore(Device, _renderFinishedSemaphores![i], null);
+			_api.Vk.DestroySemaphore(Device, _imageAvailableSemaphores![i], null);
+			_api.Vk.DestroyFence(Device, _inFlightFences![i], null);
 		}
 		
-		_api.Vk.DestroyCommandPool(_device, _commandPool, null);
+		_api.Vk.DestroyCommandPool(Device, _commandPool, null);
 		
-		_api.Vk.DestroyDevice(_device, null);
+		_api.Vk.DestroyDevice(Device, null);
 	}
 
 	public override void WaitIdle()
 	{
-		_api.Vk.DeviceWaitIdle(_device);
+		_api.Vk.DeviceWaitIdle(Device);
 	}
-    
+
+	public override RenderPass CreateRenderPass(RenderPassOptions options)
+	{
+		return new VulkanRenderPass(_api, this, options);
+	}
+
 	#region Initialization
 	private void InitDeviceAndQueues(out Device device, out Queue graphicsQueue, out Queue presentQueue)
 	{
@@ -166,8 +171,8 @@ public unsafe class VulkanLogicalDevice : LogicalDevice
 			throw new GfxException("Failed to create logical device!");
 		}
 
-		_api.Vk.GetDeviceQueue(_device, _physicalDevice.GraphicsQueueFamily!.Value, 0, out graphicsQueue);
-		_api.Vk.GetDeviceQueue(_device, _physicalDevice.PresentQueueFamily!.Value,  0, out presentQueue);
+		_api.Vk.GetDeviceQueue(Device, _physicalDevice.GraphicsQueueFamily!.Value, 0, out graphicsQueue);
+		_api.Vk.GetDeviceQueue(Device, _physicalDevice.PresentQueueFamily!.Value,  0, out presentQueue);
 
 		if (_api.IsDebugEnabled)
 		{
@@ -186,12 +191,12 @@ public unsafe class VulkanLogicalDevice : LogicalDevice
 	
 	private void InitSwapChain(
 		ImageFormat       desiredFormat,
-		bool needDepthStencil,
+		bool              needDepthStencil,
 		ref KhrSwapchain? khrSwapChain,
 		ref SwapchainKHR  swapChain,
 		ref Image[]?      swapChainImages,
 		ref Format        swapChainImageFormat,
-		ref Format swapChainDepthStencilFormat,
+		ref Format        swapChainDepthStencilFormat,
 		ref Extent2D      swapChainExtent
 	)
 	{
@@ -245,22 +250,22 @@ public unsafe class VulkanLogicalDevice : LogicalDevice
 
 		if (khrSwapChain is null)
 		{
-			if (!_api.Vk.TryGetDeviceExtension(_api.Instance, _device, out khrSwapChain))
+			if (!_api.Vk.TryGetDeviceExtension(_api.Instance, Device, out khrSwapChain))
 			{
 				throw new NotSupportedException($"{KhrSwapchain.ExtensionName} extension not found.");
 			}
 		}
 
-		if (khrSwapChain!.CreateSwapchain(_device, createInfo, null, out swapChain) != Result.Success)
+		if (khrSwapChain!.CreateSwapchain(Device, createInfo, null, out swapChain) != Result.Success)
 		{
 			throw new GfxException("Failed to create swap chain!");
 		}
 
-		khrSwapChain.GetSwapchainImages(_device, swapChain, ref imageCount, null);
+		khrSwapChain.GetSwapchainImages(Device, swapChain, ref imageCount, null);
 		swapChainImages = new Image[imageCount];
 		fixed (Image* swapChainImagesPtr = swapChainImages)
 		{
-			khrSwapChain.GetSwapchainImages(_device, swapChain, ref imageCount, swapChainImagesPtr);
+			khrSwapChain.GetSwapchainImages(Device, swapChain, ref imageCount, swapChainImagesPtr);
 		}
 
 		swapChainImageFormat = surfaceFormat.Format;
@@ -278,7 +283,7 @@ public unsafe class VulkanLogicalDevice : LogicalDevice
 
 		for (int i = 0; i < _swapChainImages.Length; i++)
 		{
-			imageViews[i] = CreateImageView(_swapChainImages[i], _swapChainImageFormat, ImageAspectFlags.ColorBit, 1);
+			imageViews[i] = CreateImageView(_swapChainImages[i], SwapChainImageFormat, ImageAspectFlags.ColorBit, 1);
 		}
 	}
 	
@@ -313,15 +318,15 @@ public unsafe class VulkanLogicalDevice : LogicalDevice
 
 	private void InitColorResources(ref Image colorImage, ref DeviceMemory colorImageMemory, ref ImageView colorImageView)
 	{
-		Format colorFormat = _swapChainImageFormat;
+		Format colorFormat = SwapChainImageFormat;
 	
-		CreateImage(_swapChainExtent.Width, _swapChainExtent.Height, 1, _msaaSampleCount, colorFormat, ImageTiling.Optimal, ImageUsageFlags.TransientAttachmentBit | ImageUsageFlags.ColorAttachmentBit, MemoryPropertyFlags.DeviceLocalBit, ref colorImage, ref colorImageMemory);
+		CreateImage(_swapChainExtent.Width, _swapChainExtent.Height, 1, MsaaSampleCount, colorFormat, ImageTiling.Optimal, ImageUsageFlags.TransientAttachmentBit | ImageUsageFlags.ColorAttachmentBit, MemoryPropertyFlags.DeviceLocalBit, ref colorImage, ref colorImageMemory);
 		colorImageView = CreateImageView(colorImage, colorFormat, ImageAspectFlags.ColorBit, 1);
 	}
 	
 	private void InitDepthResources(ref Image depthImage, ref DeviceMemory depthImageMemory, ref ImageView depthImageView)
 	{
-		if (_swapChainDepthStencilFormat == Format.Undefined)
+		if (SwapChainDepthStencilFormat == Format.Undefined)
 		{
 			depthImage       = default;
 			depthImageMemory = default;
@@ -329,9 +334,9 @@ public unsafe class VulkanLogicalDevice : LogicalDevice
 			return;
 		}
 
-		Format depthFormat = _swapChainDepthStencilFormat;
+		Format depthFormat = SwapChainDepthStencilFormat;
 	
-		CreateImage(_swapChainExtent.Width, _swapChainExtent.Height, 1, _msaaSampleCount, depthFormat, ImageTiling.Optimal, ImageUsageFlags.DepthStencilAttachmentBit, MemoryPropertyFlags.DeviceLocalBit, ref depthImage, ref depthImageMemory);
+		CreateImage(_swapChainExtent.Width, _swapChainExtent.Height, 1, MsaaSampleCount, depthFormat, ImageTiling.Optimal, ImageUsageFlags.DepthStencilAttachmentBit, MemoryPropertyFlags.DeviceLocalBit, ref depthImage, ref depthImageMemory);
 		depthImageView = CreateImageView(depthImage, depthFormat, ImageAspectFlags.DepthBit, 1);
 	}
 
@@ -343,7 +348,7 @@ public unsafe class VulkanLogicalDevice : LogicalDevice
 			                                 QueueFamilyIndex = _physicalDevice.GraphicsQueueFamily!.Value,
 		                                 };
 
-		if (_api.Vk.CreateCommandPool(_device, poolInfo, null, out commandPool) != Result.Success)
+		if (_api.Vk.CreateCommandPool(Device, poolInfo, null, out commandPool) != Result.Success)
 		{
 			throw new Exception("failed to create command pool!");
 		}
@@ -374,9 +379,9 @@ public unsafe class VulkanLogicalDevice : LogicalDevice
 
 		for (var i = 0; i < _maxFramesInFlight; i++)
 		{
-			if (_api.Vk.CreateSemaphore(_device, semaphoreInfo, null, out imageAvailableSemaphores[i]) != Result.Success ||
-			    _api.Vk.CreateSemaphore(_device, semaphoreInfo, null, out renderFinishedSemaphores[i]) != Result.Success ||
-			    _api.Vk.CreateFence(_device, fenceInfo, null, out inFlightFences[i])                   != Result.Success)
+			if (_api.Vk.CreateSemaphore(Device, semaphoreInfo, null, out imageAvailableSemaphores[i]) != Result.Success ||
+			    _api.Vk.CreateSemaphore(Device, semaphoreInfo, null, out renderFinishedSemaphores[i]) != Result.Success ||
+			    _api.Vk.CreateFence(Device, fenceInfo, null, out inFlightFences[i])                   != Result.Success)
 			{
 				throw new GfxException("Failed to create synchronization objects for a frame!");
 			}
@@ -457,7 +462,7 @@ public unsafe class VulkanLogicalDevice : LogicalDevice
 			                                 }
 		                                 };
 
-		if (_api.Vk.CreateImageView(_device, createInfo, null, out ImageView imageView) != Result.Success)
+		if (_api.Vk.CreateImageView(Device, createInfo, null, out ImageView imageView) != Result.Success)
 		{
 			throw new GfxException("Failed to create image view!");
 		}
@@ -489,13 +494,13 @@ public unsafe class VulkanLogicalDevice : LogicalDevice
 
 		fixed (Image* imagePtr = &image)
 		{
-			if (_api.Vk.CreateImage(_device, imageInfo, null, imagePtr) != Result.Success)
+			if (_api.Vk.CreateImage(Device, imageInfo, null, imagePtr) != Result.Success)
 			{
 				throw new GfxException("Failed to create image!");
 			}
 		}
 
-		_api.Vk.GetImageMemoryRequirements(_device, image, out MemoryRequirements memRequirements);
+		_api.Vk.GetImageMemoryRequirements(Device, image, out MemoryRequirements memRequirements);
 
 		MemoryAllocateInfo allocInfo = new()
 		                               {
@@ -506,13 +511,13 @@ public unsafe class VulkanLogicalDevice : LogicalDevice
 
 		fixed (DeviceMemory* imageMemoryPtr = &imageMemory)
 		{
-			if (_api.Vk.AllocateMemory(_device, allocInfo, null, imageMemoryPtr) != Result.Success)
+			if (_api.Vk.AllocateMemory(Device, allocInfo, null, imageMemoryPtr) != Result.Success)
 			{
 				throw new GfxException("Failed to allocate image memory!");
 			}
 		}
 
-		_api.Vk.BindImageMemory(_device, image, imageMemory, 0);
+		_api.Vk.BindImageMemory(Device, image, imageMemory, 0);
 	}
 
 	private uint FindMemoryType(uint typeFilter, MemoryPropertyFlags properties)

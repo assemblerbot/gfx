@@ -14,6 +14,7 @@ internal class GfxTestApplication
 
 	private Api?           _api;
 	private LogicalDevice? _logicalDevice;
+	private RenderPass?    _renderPass;
 	
 	public void Run()
 	{
@@ -83,8 +84,14 @@ internal class GfxTestApplication
 		//_api.CreateGraphicsDevice(_window, options);
 	}
 
+	private void InitRenderPass()
+	{
+		_renderPass = _logicalDevice!.CreateRenderPass(new RenderPassOptions());
+	}
+
 	private void CleanUp()
 	{
+		_renderPass?.Dispose();
 		_logicalDevice?.Dispose();
 		_api?.Dispose();
 		_window.Dispose();
@@ -99,6 +106,7 @@ internal class GfxTestApplication
 	{
 		InitGfx();
 		InitGraphicsDevice();
+		InitRenderPass();
 	}
 
 	private void OnUpdate(double obj)
