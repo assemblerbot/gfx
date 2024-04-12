@@ -78,7 +78,7 @@ internal class GfxTestApplication
 		}
 
 		// logical device
-		_logicalDevice = _api!.CreateLogicalDevice(new LogicalDeviceOptions(bestPhysicalDevice, ImageFormat.B8G8R8Srgb));
+		_logicalDevice = _api!.CreateLogicalDevice(new LogicalDeviceOptions(bestPhysicalDevice, ImageFormat.B8G8R8Srgb, true));
 
 		//_api.CreateGraphicsDevice(_window, options);
 	}

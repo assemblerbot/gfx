@@ -28,6 +28,14 @@ public unsafe class VulkanLogicalDevice : LogicalDevice
 	private ImageView[]?  _swapChainImageViews;
 	//private Framebuffer[]? _swapChainFramebuffers;
 	
+	private Image        _colorImage;
+	private DeviceMemory _colorImageMemory;
+	private ImageView    _colorImageView;
+
+	private Image        _depthImage;
+	private DeviceMemory _depthImageMemory;
+	private ImageView    _depthImageView;
+	
 	private CommandPool _commandPool;
     
 	private Semaphore[]? _imageAvailableSemaphores;
@@ -45,6 +53,8 @@ public unsafe class VulkanLogicalDevice : LogicalDevice
 		InitSwapChain(options.FrameBufferFormat, ref _khrSwapChain, ref _swapChain, ref _swapChainImages, ref _swapChainImageFormat, ref _swapChainExtent);
 		InitImageViews(out _swapChainImageViews);
 		//InitFrameBuffers(out _swapChainFramebuffers);
+		// InitColorResources(out _colorImage, out _colorImageMemory, out _colorImageView);
+		// InitDepthResources(out _depthImage, out _depthImageMemory, out _depthImageView);
 		InitCommandPool(out _commandPool);
 		InitSyncObjects(out _imageAvailableSemaphores, out _renderFinishedSemaphores, out _inFlightFences, out _imagesInFlight);
 	}
@@ -269,6 +279,23 @@ public unsafe class VulkanLogicalDevice : LogicalDevice
 		}
 	}
 	*/
+
+	// TODO
+	// private void InitColorResources(out Image colorImage, out DeviceMemory colorImageMemory, out ImageView colorImageView)
+	// {
+	// 	Format colorFormat = _swapChainImageFormat;
+	//
+	// 	CreateImage(_swapChainExtent.Width, _swapChainExtent.Height, 1, msaaSamples, colorFormat, ImageTiling.Optimal, ImageUsageFlags.TransientAttachmentBit | ImageUsageFlags.ColorAttachmentBit, MemoryPropertyFlags.DeviceLocalBit, ref colorImage, ref colorImageMemory);
+	// 	colorImageView = CreateImageView(colorImage, colorFormat, ImageAspectFlags.ColorBit, 1);
+	// }
+	//
+	// private void InitDepthResources(out Image depthImage, out DeviceMemory depthImageMemory, out ImageView depthImageView)
+	// {
+	// 	Format depthFormat = FindDepthFormat();
+	//
+	// 	CreateImage(_swapChainExtent.Width, _swapChainExtent.Height, 1, msaaSamples, depthFormat, ImageTiling.Optimal, ImageUsageFlags.DepthStencilAttachmentBit, MemoryPropertyFlags.DeviceLocalBit, ref depthImage, ref depthImageMemory);
+	// 	depthImageView = CreateImageView(depthImage, depthFormat, ImageAspectFlags.DepthBit, 1);
+	// }
 	
 	private void InitCommandPool(out CommandPool commandPool)
 	{
@@ -398,6 +425,71 @@ public unsafe class VulkanLogicalDevice : LogicalDevice
 		}
 
 		return imageView;
+	}
+	
+	private void CreateImage(uint width, uint height, uint mipLevels, SampleCountFlags numSamples, Format format, ImageTiling tiling, ImageUsageFlags usage, MemoryPropertyFlags properties, ref Image image, ref DeviceMemory imageMemory)
+	{
+		ImageCreateInfo imageInfo = new()
+		                            {
+			                            SType     = StructureType.ImageCreateInfo,
+			                            ImageType = ImageType.Type2D,
+			                            Extent =
+			                            {
+				                            Width  = width,
+				                            Height = height,
+				                            Depth  = 1,
+			                            },
+			                            MipLevels     = mipLevels,
+			                            ArrayLayers   = 1,
+			                            Format        = format,
+			                            Tiling        = tiling,
+			                            InitialLayout = ImageLayout.Undefined,
+			                            Usage         = usage,
+			                            Samples       = numSamples,
+			                            SharingMode   = SharingMode.Exclusive,
+		                            };
+
+		fixed (Image* imagePtr = &image)
+		{
+			if (_api.Vk.CreateImage(_device, imageInfo, null, imagePtr) != Result.Success)
+			{
+				throw new GfxException("Failed to create image!");
+			}
+		}
+
+		_api.Vk.GetImageMemoryRequirements(_device, image, out MemoryRequirements memRequirements);
+
+		MemoryAllocateInfo allocInfo = new()
+		                               {
+			                               SType           = StructureType.MemoryAllocateInfo,
+			                               AllocationSize  = memRequirements.Size,
+			                               MemoryTypeIndex = FindMemoryType(memRequirements.MemoryTypeBits, properties),
+		                               };
+
+		fixed (DeviceMemory* imageMemoryPtr = &imageMemory)
+		{
+			if (_api.Vk.AllocateMemory(_device, allocInfo, null, imageMemoryPtr) != Result.Success)
+			{
+				throw new GfxException("Failed to allocate image memory!");
+			}
+		}
+
+		_api.Vk.BindImageMemory(_device, image, imageMemory, 0);
+	}
+
+	private uint FindMemoryType(uint typeFilter, MemoryPropertyFlags properties)
+	{
+		_api.Vk.GetPhysicalDeviceMemoryProperties(_physicalDevice.Device, out PhysicalDeviceMemoryProperties memProperties);
+
+		for (int i = 0; i < memProperties.MemoryTypeCount; i++)
+		{
+			if ((typeFilter & (1 << i)) != 0 && (memProperties.MemoryTypes[i].PropertyFlags & properties) == properties)
+			{
+				return (uint)i;
+			}
+		}
+
+		throw new GfxException("Failed to find suitable memory type!");
 	}
 	#endregion
 }
