@@ -12,9 +12,10 @@ internal class GfxTestApplication
 	public        IWindow         NativeWindow => _window;
 	public        IView           View         => _window;
 
-	private Api?           _api;
-	private LogicalDevice? _logicalDevice;
-	private RenderPass?    _renderPass;
+	private Api?            _api;
+	private PhysicalDevice? _physicalDevice;
+	private LogicalDevice?  _logicalDevice;
+	private RenderPass?     _renderPass;
 	
 	public void Run()
 	{
@@ -58,16 +59,16 @@ internal class GfxTestApplication
 		_api = Api.Create(options);
 	}
 
-	private void InitGraphicsDevice()
+	private void PickPhysicalDevice()
 	{
-		// physical device, TODO - move selection code to api
+		// physical device, TODO - move selection code to api, this shoud be just one line
 		IReadOnlyList<PhysicalDevice> physicalDevices = _api!.EnumeratePhysicalDevices();
 
 		foreach (PhysicalDevice device in physicalDevices)
 		{
 			Console.WriteLine($"{device.Name} kind={device.Kind}");
 		}
-		
+
 		PhysicalDevice? bestPhysicalDevice = physicalDevices.FirstOrDefault(device => device.Kind == PhysicalDeviceKind.DiscreteGpu && device.SupportsGraphics);
 		bestPhysicalDevice ??= physicalDevices.FirstOrDefault(device => device.Kind == PhysicalDeviceKind.IntegratedGpu && device.SupportsGraphics);
 		bestPhysicalDevice ??= physicalDevices.FirstOrDefault(device => device.Kind == PhysicalDeviceKind.Cpu           && device.SupportsGraphics);
@@ -78,13 +79,15 @@ internal class GfxTestApplication
 			return;
 		}
 
-		// logical device
-		_logicalDevice = _api!.CreateLogicalDevice(new LogicalDeviceOptions(bestPhysicalDevice, ImageFormat.B8G8R8Srgb, true));
-
-		//_api.CreateGraphicsDevice(_window, options);
+		_physicalDevice = bestPhysicalDevice;
+	}
+	
+	private void CreateLogicalDevice()
+	{
+		_logicalDevice = _api!.CreateLogicalDevice(new LogicalDeviceOptions(_physicalDevice!, ImageFormat.B8G8R8Srgb, true));
 	}
 
-	private void InitRenderPass()
+	private void CreateRenderPass()
 	{
 		_renderPass = _logicalDevice!.CreateRenderPass(new RenderPassOptions());
 	}
@@ -105,8 +108,9 @@ internal class GfxTestApplication
 	private void OnLoad()
 	{
 		InitGfx();
-		InitGraphicsDevice();
-		InitRenderPass();
+		PickPhysicalDevice();
+		CreateLogicalDevice();
+		CreateRenderPass();
 	}
 
 	private void OnUpdate(double obj)
