@@ -3,13 +3,16 @@ using Silk.NET.Core.Native;
 using Silk.NET.Maths;
 using Silk.NET.Vulkan;
 using Silk.NET.Vulkan.Extensions.KHR;
+using Semaphore = Silk.NET.Vulkan.Semaphore;
 
 namespace Gfx;
 
 // TODO - this is just for graphical device, not for compute
 public unsafe class VulkanLogicalDevice : LogicalDevice
 {
-	private const    float                _queuePriority = 1f; // from every queue family we need just one queue (priority: 0..1)
+	private const    float _queuePriority     = 1f; // from every queue family we need just one queue (priority: 0..1)
+	private readonly int   _maxFramesInFlight;      // max number of frames that can be rendered at the same time
+	
 	private readonly VulkanApi            _api;
 	private readonly VulkanPhysicalDevice _physicalDevice;
     
@@ -17,23 +20,33 @@ public unsafe class VulkanLogicalDevice : LogicalDevice
 	private readonly Queue  _graphicsQueue;
 	private readonly Queue  _presentQueue;
 	
-	private KhrSwapchain?  _khrSwapChain;
-	private SwapchainKHR   _swapChain;
-	private Image[]?       _swapChainImages;
-	private Format         _swapChainImageFormat;
-	private Extent2D       _swapChainExtent;
-	private ImageView[]?   _swapChainImageViews;
+	private KhrSwapchain? _khrSwapChain;
+	private SwapchainKHR  _swapChain;
+	private Image[]?      _swapChainImages;
+	private Format        _swapChainImageFormat;
+	private Extent2D      _swapChainExtent;
+	private ImageView[]?  _swapChainImageViews;
 	//private Framebuffer[]? _swapChainFramebuffers;
+	
+	private CommandPool _commandPool;
     
+	private Semaphore[]? _imageAvailableSemaphores;
+	private Semaphore[]? _renderFinishedSemaphores;
+	private Fence[]?     _inFlightFences;
+	private Fence[]?     _imagesInFlight;
+	
 	internal VulkanLogicalDevice(VulkanApi api, LogicalDeviceOptions options)
 	{
-		_api            = api;
-		_physicalDevice = (VulkanPhysicalDevice)options.PhysicalDevice;
+		_api               = api;
+		_physicalDevice    = (VulkanPhysicalDevice)options.PhysicalDevice;
+		_maxFramesInFlight = options.MaxFramesInFlight;
 
 		InitDeviceAndQueues(out _device, out _graphicsQueue, out _presentQueue);
 		InitSwapChain(options.FrameBufferFormat, ref _khrSwapChain, ref _swapChain, ref _swapChainImages, ref _swapChainImageFormat, ref _swapChainExtent);
 		InitImageViews(out _swapChainImageViews);
 		//InitFrameBuffers(out _swapChainFramebuffers);
+		InitCommandPool(out _commandPool);
+		InitSyncObjects(out _imageAvailableSemaphores, out _renderFinishedSemaphores, out _inFlightFences, out _imagesInFlight);
 	}
 
 	public override void Dispose()
@@ -55,6 +68,15 @@ public unsafe class VulkanLogicalDevice : LogicalDevice
 			// _api.Vk.DestroyBuffer(_device, uniformBuffers![i], null);
 			// _api.Vk.FreeMemory(_device, uniformBuffersMemory![i], null);
 		}
+
+		for (int i = 0; i < _maxFramesInFlight; ++i)
+		{
+			_api.Vk.DestroySemaphore(_device, _renderFinishedSemaphores![i], null);
+			_api.Vk.DestroySemaphore(_device, _imageAvailableSemaphores![i], null);
+			_api.Vk.DestroyFence(_device, _inFlightFences![i], null);
+		}
+		
+		_api.Vk.DestroyCommandPool(_device, _commandPool, null);
 		
 		_api.Vk.DestroyDevice(_device, null);
 	}
@@ -129,7 +151,7 @@ public unsafe class VulkanLogicalDevice : LogicalDevice
 	}
 	
 	private void InitSwapChain(
-		ImageFormat desiredFormat,
+		ImageFormat       desiredFormat,
 		ref KhrSwapchain? khrSwapChain,
 		ref SwapchainKHR  swapChain,
 		ref Image[]?      swapChainImages,
@@ -247,6 +269,54 @@ public unsafe class VulkanLogicalDevice : LogicalDevice
 		}
 	}
 	*/
+	
+	private void InitCommandPool(out CommandPool commandPool)
+	{
+		CommandPoolCreateInfo poolInfo = new()
+		                                 {
+			                                 SType            = StructureType.CommandPoolCreateInfo,
+			                                 QueueFamilyIndex = _physicalDevice.GraphicsQueueFamily!.Value,
+		                                 };
+
+		if (_api.Vk.CreateCommandPool(_device, poolInfo, null, out commandPool) != Result.Success)
+		{
+			throw new Exception("failed to create command pool!");
+		}
+	}
+
+	private void InitSyncObjects(
+		out Semaphore[]? imageAvailableSemaphores,
+		out Semaphore[]? renderFinishedSemaphores,
+		out Fence[]?     inFlightFences,
+		out Fence[]?     imagesInFlight
+	)
+	{
+		imageAvailableSemaphores = new Semaphore[_maxFramesInFlight];
+		renderFinishedSemaphores = new Semaphore[_maxFramesInFlight];
+		inFlightFences           = new Fence[_maxFramesInFlight];
+		imagesInFlight           = new Fence[_swapChainImages!.Length];
+
+		SemaphoreCreateInfo semaphoreInfo = new()
+		                                    {
+			                                    SType = StructureType.SemaphoreCreateInfo,
+		                                    };
+
+		FenceCreateInfo fenceInfo = new()
+		                            {
+			                            SType = StructureType.FenceCreateInfo,
+			                            Flags = FenceCreateFlags.SignaledBit,
+		                            };
+
+		for (var i = 0; i < _maxFramesInFlight; i++)
+		{
+			if (_api.Vk.CreateSemaphore(_device, semaphoreInfo, null, out imageAvailableSemaphores[i]) != Result.Success ||
+			    _api.Vk.CreateSemaphore(_device, semaphoreInfo, null, out renderFinishedSemaphores[i]) != Result.Success ||
+			    _api.Vk.CreateFence(_device, fenceInfo, null, out inFlightFences[i])                   != Result.Success)
+			{
+				throw new GfxException("Failed to create synchronization objects for a frame!");
+			}
+		}
+	}
 	#endregion
 	
 	#region Initialization helpers

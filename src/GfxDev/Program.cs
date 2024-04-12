@@ -59,7 +59,7 @@ internal class GfxTestApplication
 
 	private void InitGraphicsDevice()
 	{
-		// physical device
+		// physical device, TODO - move selection code to api
 		IReadOnlyList<PhysicalDevice> physicalDevices = _api!.EnumeratePhysicalDevices();
 
 		foreach (PhysicalDevice device in physicalDevices)
