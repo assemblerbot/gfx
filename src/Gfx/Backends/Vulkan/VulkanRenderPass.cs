@@ -13,11 +13,83 @@ public unsafe class VulkanRenderPass : RenderPass
 	{
 		_api    = api;
 		_device = logicalDevice;
-		
+
+		if (_device.HasDepthStencil)
+		{
+			InitColorAndDepthStencil(out _renderPass);
+		}
+		else
+		{
+			InitColor(out _renderPass);
+		}
+	}
+
+	public override void Dispose()
+	{
+		_api.Vk.DestroyRenderPass(_device.Device, _renderPass, null);
+	}
+
+	#region Initialization
+
+	private void InitColor(out Silk.NET.Vulkan.RenderPass renderPass)
+	{
 		AttachmentDescription colorAttachment = new()
 		                                        {
-			                                        Format        = logicalDevice.SwapChainImageFormat,
-			                                        Samples       = logicalDevice.MsaaSampleCount,
+			                                        Format        = _device.SwapChainImageFormat,
+			                                        Samples       = SampleCountFlags.Count1Bit,
+			                                        LoadOp        = AttachmentLoadOp.Clear,
+			                                        StoreOp       = AttachmentStoreOp.Store,
+			                                        StencilLoadOp = AttachmentLoadOp.DontCare,
+			                                        InitialLayout = ImageLayout.Undefined,
+			                                        FinalLayout   = ImageLayout.PresentSrcKhr,
+		                                        };
+
+		AttachmentReference colorAttachmentRef = new()
+		                                         {
+			                                         Attachment = 0,
+			                                         Layout     = ImageLayout.ColorAttachmentOptimal,
+		                                         };
+
+		SubpassDescription subpass = new()
+		                             {
+			                             PipelineBindPoint    = PipelineBindPoint.Graphics,
+			                             ColorAttachmentCount = 1,
+			                             PColorAttachments    = &colorAttachmentRef,
+		                             };
+
+		SubpassDependency dependency = new()
+		                               {
+			                               SrcSubpass    = Vk.SubpassExternal,
+			                               DstSubpass    = 0,
+			                               SrcStageMask  = PipelineStageFlags.ColorAttachmentOutputBit,
+			                               SrcAccessMask = 0,
+			                               DstStageMask  = PipelineStageFlags.ColorAttachmentOutputBit,
+			                               DstAccessMask = AccessFlags.ColorAttachmentWriteBit
+		                               };
+
+		RenderPassCreateInfo renderPassInfo = new()
+		                                      {
+			                                      SType           = StructureType.RenderPassCreateInfo,
+			                                      AttachmentCount = 1,
+			                                      PAttachments    = &colorAttachment,
+			                                      SubpassCount    = 1,
+			                                      PSubpasses      = &subpass,
+			                                      DependencyCount = 1,
+			                                      PDependencies   = &dependency,
+		                                      };
+
+		if (_api.Vk.CreateRenderPass(_device.Device, renderPassInfo, null, out renderPass) != Result.Success)
+		{
+			throw new GfxException("Failed to create render pass!");
+		}
+	}
+	
+	private void InitColorAndDepthStencil(out Silk.NET.Vulkan.RenderPass renderPass)
+	{
+		AttachmentDescription colorAttachment = new()
+		                                        {
+			                                        Format        = _device.SwapChainImageFormat,
+			                                        Samples       = _device.MsaaSampleCount,
 			                                        LoadOp        = AttachmentLoadOp.Clear,
 			                                        StoreOp       = AttachmentStoreOp.Store,
 			                                        StencilLoadOp = AttachmentLoadOp.DontCare,
@@ -27,8 +99,8 @@ public unsafe class VulkanRenderPass : RenderPass
 
 		AttachmentDescription depthAttachment = new()
 		                                        {
-			                                        Format         = logicalDevice.SwapChainDepthStencilFormat,
-			                                        Samples        = logicalDevice.MsaaSampleCount,
+			                                        Format         = _device.SwapChainDepthStencilFormat,
+			                                        Samples        = _device.MsaaSampleCount,
 			                                        LoadOp         = AttachmentLoadOp.Clear,
 			                                        StoreOp        = AttachmentStoreOp.DontCare,
 			                                        StencilLoadOp  = AttachmentLoadOp.DontCare,
@@ -39,7 +111,7 @@ public unsafe class VulkanRenderPass : RenderPass
 
 		AttachmentDescription colorAttachmentResolve = new()
 		                                               {
-			                                               Format         = logicalDevice.SwapChainImageFormat,
+			                                               Format         = _device.SwapChainImageFormat,
 			                                               Samples        = SampleCountFlags.Count1Bit,
 			                                               LoadOp         = AttachmentLoadOp.DontCare,
 			                                               StoreOp        = AttachmentStoreOp.Store,
@@ -101,15 +173,12 @@ public unsafe class VulkanRenderPass : RenderPass
 				                                      PDependencies   = &dependency,
 			                                      };
 
-			if (api.Vk.CreateRenderPass(logicalDevice.Device, renderPassInfo, null, out _renderPass) != Result.Success)
+			if (_api.Vk.CreateRenderPass(_device.Device, renderPassInfo, null, out renderPass) != Result.Success)
 			{
 				throw new GfxException("Failed to create render pass!");
 			}
 		}
 	}
 
-	public override void Dispose()
-	{
-		_api.Vk.DestroyRenderPass(_device.Device, _renderPass, null);
-	}
+	#endregion
 }
