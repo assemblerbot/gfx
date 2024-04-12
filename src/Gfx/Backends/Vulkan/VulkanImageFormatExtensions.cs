@@ -2,7 +2,7 @@ using Silk.NET.Vulkan;
 
 namespace Gfx;
 
-public static class VulkanFormatExtensions
+public static class VulkanImageFormatExtensions
 {
     public static ImageFormat Convert(this Format @this)
     {

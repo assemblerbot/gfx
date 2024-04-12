@@ -20,7 +20,8 @@ public unsafe class VulkanPhysicalDevice : PhysicalDevice
 	internal readonly bool                           GraphicsExtensionsSupported;
 	internal readonly VulkanSwapChainSupportDetails? SwapChainSupportDetails;
 
-	internal readonly PhysicalDeviceFeatures Features;
+	internal readonly PhysicalDeviceFeatures   Features;
+	internal readonly PhysicalDeviceProperties Properties;
 
 	public override PhysicalDeviceKind Kind => _kind;
 	public override string             Name => _name;
@@ -47,6 +48,7 @@ public unsafe class VulkanPhysicalDevice : PhysicalDevice
 		InitQueueFamilies(out GraphicsQueueFamily, out PresentQueueFamily, out ComputeQueueFamily);
 		InitExtensionSupport(out GraphicsExtensionsSupported);
 		InitFeatures(out Features);
+		InitProperties(out Properties);
 		
 		if (GraphicsExtensionsSupported)
 		{
@@ -133,6 +135,11 @@ public unsafe class VulkanPhysicalDevice : PhysicalDevice
 		_api.Vk.GetPhysicalDeviceFeatures(Device, out features);
 	}
 
+	private void InitProperties(out PhysicalDeviceProperties properties)
+	{
+		_api.Vk.GetPhysicalDeviceProperties(Device, out properties);
+	}
+
 	private void InitSwapChainSupport(out VulkanSwapChainSupportDetails details)
 	{
 		details = new VulkanSwapChainSupportDetails();
@@ -172,4 +179,40 @@ public unsafe class VulkanPhysicalDevice : PhysicalDevice
 		}
 	}
 	#endregion
+
+	internal SampleCountFlags GetMaxMsaaSamplesCount()
+	{
+		SampleCountFlags counts = Properties.Limits.FramebufferColorSampleCounts & Properties.Limits.FramebufferDepthSampleCounts;
+		
+		return counts switch
+		{
+			var c when (c & SampleCountFlags.Count64Bit) != 0 => SampleCountFlags.Count64Bit,
+			var c when (c & SampleCountFlags.Count32Bit) != 0 => SampleCountFlags.Count32Bit,
+			var c when (c & SampleCountFlags.Count16Bit) != 0 => SampleCountFlags.Count16Bit,
+			var c when (c & SampleCountFlags.Count8Bit)  != 0 => SampleCountFlags.Count8Bit,
+			var c when (c & SampleCountFlags.Count4Bit)  != 0 => SampleCountFlags.Count4Bit,
+			var c when (c & SampleCountFlags.Count2Bit)  != 0 => SampleCountFlags.Count2Bit,
+			_                                                 => SampleCountFlags.Count1Bit
+		};
+	}
+	
+	internal Format FindSupportedFormat(IEnumerable<Format> candidates, ImageTiling tiling, FormatFeatureFlags features)
+	{
+		foreach (var format in candidates)
+		{
+			_api.Vk.GetPhysicalDeviceFormatProperties(Device, format, out var props);
+
+			if (tiling == ImageTiling.Linear && (props.LinearTilingFeatures & features) == features)
+			{
+				return format;
+			}
+			
+			if (tiling == ImageTiling.Optimal && (props.OptimalTilingFeatures & features) == features)
+			{
+				return format;
+			}
+		}
+
+		return Format.Undefined;
+	}
 }

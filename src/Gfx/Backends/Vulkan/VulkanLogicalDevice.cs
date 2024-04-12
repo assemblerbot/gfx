@@ -19,15 +19,19 @@ public unsafe class VulkanLogicalDevice : LogicalDevice
 	private readonly Device _device;
 	private readonly Queue  _graphicsQueue;
 	private readonly Queue  _presentQueue;
+
+	private readonly SampleCountFlags _msaaSampleCount;
 	
 	private KhrSwapchain? _khrSwapChain;
 	private SwapchainKHR  _swapChain;
 	private Image[]?      _swapChainImages;
 	private Format        _swapChainImageFormat;
+	private Format        _swapChainDepthStencilFormat;
 	private Extent2D      _swapChainExtent;
 	private ImageView[]?  _swapChainImageViews;
 	//private Framebuffer[]? _swapChainFramebuffers;
-	
+	private bool HasDepthStencil => _swapChainDepthStencilFormat != Format.Undefined;
+
 	private Image        _colorImage;
 	private DeviceMemory _colorImageMemory;
 	private ImageView    _colorImageView;
@@ -50,17 +54,25 @@ public unsafe class VulkanLogicalDevice : LogicalDevice
 		_maxFramesInFlight = options.MaxFramesInFlight;
 
 		InitDeviceAndQueues(out _device, out _graphicsQueue, out _presentQueue);
-		InitSwapChain(options.FrameBufferFormat, ref _khrSwapChain, ref _swapChain, ref _swapChainImages, ref _swapChainImageFormat, ref _swapChainExtent);
+		InitMsaaSampleCount(out _msaaSampleCount, options.MsaaSampleCount);
+		InitSwapChain(options.FrameBufferFormat, options.NeedDepthStencil, ref _khrSwapChain, ref _swapChain, ref _swapChainImages, ref _swapChainImageFormat, ref _swapChainDepthStencilFormat, ref _swapChainExtent);
 		InitImageViews(out _swapChainImageViews);
 		//InitFrameBuffers(out _swapChainFramebuffers);
-		// InitColorResources(out _colorImage, out _colorImageMemory, out _colorImageView);
-		// InitDepthResources(out _depthImage, out _depthImageMemory, out _depthImageView);
+		InitColorResources(ref _colorImage, ref _colorImageMemory, ref _colorImageView);
+		InitDepthResources(ref _depthImage, ref _depthImageMemory, ref _depthImageView);
 		InitCommandPool(out _commandPool);
 		InitSyncObjects(out _imageAvailableSemaphores, out _renderFinishedSemaphores, out _inFlightFences, out _imagesInFlight);
 	}
 
-	public override void Dispose()
+	public void DisposeSwapChain()
 	{
+		if (HasDepthStencil)
+		{
+			_api.Vk.DestroyImageView(_device, _depthImageView, null);
+			_api.Vk.DestroyImage(_device, _depthImage, null);
+			_api.Vk.FreeMemory(_device, _depthImageMemory, null);
+		}
+
 		// foreach (var framebuffer in _swapChainFramebuffers!)
 		// {
 		// 	_api.Vk!.DestroyFramebuffer(_device, framebuffer, null);
@@ -70,14 +82,19 @@ public unsafe class VulkanLogicalDevice : LogicalDevice
 		{
 			_api.Vk.DestroyImageView(_device, imageView, null);
 		}
-		
+
 		_khrSwapChain!.DestroySwapchain(_device, _swapChain, null);
 
-		for (int i = 0; i < _swapChainImages!.Length; i++)
-		{
-			// _api.Vk.DestroyBuffer(_device, uniformBuffers![i], null);
-			// _api.Vk.FreeMemory(_device, uniformBuffersMemory![i], null);
-		}
+		// for (int i = 0; i < _swapChainImages!.Length; i++)
+		// {
+		// 	_api.Vk.DestroyBuffer(_device, uniformBuffers![i], null);
+		// 	_api.Vk.FreeMemory(_device, uniformBuffersMemory![i], null);
+		// }
+	}
+
+	public override void Dispose()
+	{
+		DisposeSwapChain();
 
 		for (int i = 0; i < _maxFramesInFlight; ++i)
 		{
@@ -160,12 +177,21 @@ public unsafe class VulkanLogicalDevice : LogicalDevice
 		SilkMarshal.Free((nint)createInfo.PpEnabledExtensionNames);
 	}
 	
+	private void InitMsaaSampleCount(out SampleCountFlags msaaSampleCount, SampleCount desiredMsaaSampleCount)
+	{
+		SampleCountFlags physicalMax = _physicalDevice.GetMaxMsaaSamplesCount();
+		SampleCountFlags desired     = desiredMsaaSampleCount.ToVulkan();
+		msaaSampleCount = physicalMax < desired ? physicalMax : desired;
+	}
+	
 	private void InitSwapChain(
 		ImageFormat       desiredFormat,
+		bool needDepthStencil,
 		ref KhrSwapchain? khrSwapChain,
 		ref SwapchainKHR  swapChain,
 		ref Image[]?      swapChainImages,
 		ref Format        swapChainImageFormat,
+		ref Format swapChainDepthStencilFormat,
 		ref Extent2D      swapChainExtent
 	)
 	{
@@ -239,6 +265,11 @@ public unsafe class VulkanLogicalDevice : LogicalDevice
 
 		swapChainImageFormat = surfaceFormat.Format;
 		swapChainExtent      = extent;
+
+		swapChainDepthStencilFormat =
+			needDepthStencil
+				? _physicalDevice.FindSupportedFormat(new[] {Format.D32Sfloat, Format.D32SfloatS8Uint, Format.D24UnormS8Uint}, ImageTiling.Optimal, FormatFeatureFlags.DepthStencilAttachmentBit)
+				: Format.Undefined;
 	}
 
 	private void InitImageViews(out ImageView[]? imageViews)
@@ -280,23 +311,30 @@ public unsafe class VulkanLogicalDevice : LogicalDevice
 	}
 	*/
 
-	// TODO
-	// private void InitColorResources(out Image colorImage, out DeviceMemory colorImageMemory, out ImageView colorImageView)
-	// {
-	// 	Format colorFormat = _swapChainImageFormat;
-	//
-	// 	CreateImage(_swapChainExtent.Width, _swapChainExtent.Height, 1, msaaSamples, colorFormat, ImageTiling.Optimal, ImageUsageFlags.TransientAttachmentBit | ImageUsageFlags.ColorAttachmentBit, MemoryPropertyFlags.DeviceLocalBit, ref colorImage, ref colorImageMemory);
-	// 	colorImageView = CreateImageView(colorImage, colorFormat, ImageAspectFlags.ColorBit, 1);
-	// }
-	//
-	// private void InitDepthResources(out Image depthImage, out DeviceMemory depthImageMemory, out ImageView depthImageView)
-	// {
-	// 	Format depthFormat = FindDepthFormat();
-	//
-	// 	CreateImage(_swapChainExtent.Width, _swapChainExtent.Height, 1, msaaSamples, depthFormat, ImageTiling.Optimal, ImageUsageFlags.DepthStencilAttachmentBit, MemoryPropertyFlags.DeviceLocalBit, ref depthImage, ref depthImageMemory);
-	// 	depthImageView = CreateImageView(depthImage, depthFormat, ImageAspectFlags.DepthBit, 1);
-	// }
+	private void InitColorResources(ref Image colorImage, ref DeviceMemory colorImageMemory, ref ImageView colorImageView)
+	{
+		Format colorFormat = _swapChainImageFormat;
 	
+		CreateImage(_swapChainExtent.Width, _swapChainExtent.Height, 1, _msaaSampleCount, colorFormat, ImageTiling.Optimal, ImageUsageFlags.TransientAttachmentBit | ImageUsageFlags.ColorAttachmentBit, MemoryPropertyFlags.DeviceLocalBit, ref colorImage, ref colorImageMemory);
+		colorImageView = CreateImageView(colorImage, colorFormat, ImageAspectFlags.ColorBit, 1);
+	}
+	
+	private void InitDepthResources(ref Image depthImage, ref DeviceMemory depthImageMemory, ref ImageView depthImageView)
+	{
+		if (_swapChainDepthStencilFormat == Format.Undefined)
+		{
+			depthImage       = default;
+			depthImageMemory = default;
+			depthImageView   = default;
+			return;
+		}
+
+		Format depthFormat = _swapChainDepthStencilFormat;
+	
+		CreateImage(_swapChainExtent.Width, _swapChainExtent.Height, 1, _msaaSampleCount, depthFormat, ImageTiling.Optimal, ImageUsageFlags.DepthStencilAttachmentBit, MemoryPropertyFlags.DeviceLocalBit, ref depthImage, ref depthImageMemory);
+		depthImageView = CreateImageView(depthImage, depthFormat, ImageAspectFlags.DepthBit, 1);
+	}
+
 	private void InitCommandPool(out CommandPool commandPool)
 	{
 		CommandPoolCreateInfo poolInfo = new()
