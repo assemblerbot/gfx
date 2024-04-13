@@ -4,29 +4,31 @@ namespace Gfx;
 
 public unsafe class VulkanRenderPass : RenderPass
 {
-	private readonly VulkanApi                  _api;
-	private readonly VulkanLogicalDevice        _device;
+	private readonly VulkanApi       _api;
+	private readonly VulkanLogicalDevice   _logicalDevice;
+	private readonly VulkanSwapChain _swapChain;
 	
-	private          Silk.NET.Vulkan.RenderPass _renderPass;
+	internal          Silk.NET.Vulkan.RenderPass RenderPass;
 	
-	public VulkanRenderPass(VulkanApi api, VulkanLogicalDevice logicalDevice, RenderPassOptions options)
+	public VulkanRenderPass(VulkanApi api, VulkanLogicalDevice logicalDevice, VulkanSwapChain swapChain, RenderPassOptions options)
 	{
-		_api    = api;
-		_device = logicalDevice;
+		_api           = api;
+		_logicalDevice = logicalDevice;
+		_swapChain     = swapChain;
 
-		if (_device.HasDepthStencil)
+		if (_swapChain.HasDepthStencil)
 		{
-			InitColorAndDepthStencil(out _renderPass);
+			InitColorAndDepthStencil(out RenderPass);
 		}
 		else
 		{
-			InitColor(out _renderPass);
+			InitColor(out RenderPass);
 		}
 	}
 
 	public override void Dispose()
 	{
-		_api.Vk.DestroyRenderPass(_device.Device, _renderPass, null);
+		_api.Vk.DestroyRenderPass(_logicalDevice.Device, RenderPass, null);
 	}
 
 	#region Initialization
@@ -35,7 +37,7 @@ public unsafe class VulkanRenderPass : RenderPass
 	{
 		AttachmentDescription colorAttachment = new()
 		                                        {
-			                                        Format        = _device.SwapChainImageFormat,
+			                                        Format        = _swapChain.SwapChainImageFormat,
 			                                        Samples       = SampleCountFlags.Count1Bit,
 			                                        LoadOp        = AttachmentLoadOp.Clear,
 			                                        StoreOp       = AttachmentStoreOp.Store,
@@ -78,7 +80,7 @@ public unsafe class VulkanRenderPass : RenderPass
 			                                      PDependencies   = &dependency,
 		                                      };
 
-		if (_api.Vk.CreateRenderPass(_device.Device, renderPassInfo, null, out renderPass) != Result.Success)
+		if (_api.Vk.CreateRenderPass(_logicalDevice.Device, renderPassInfo, null, out renderPass) != Result.Success)
 		{
 			throw new GfxException("Failed to create render pass!");
 		}
@@ -88,8 +90,8 @@ public unsafe class VulkanRenderPass : RenderPass
 	{
 		AttachmentDescription colorAttachment = new()
 		                                        {
-			                                        Format        = _device.SwapChainImageFormat,
-			                                        Samples       = _device.MsaaSampleCount,
+			                                        Format        = _swapChain.SwapChainImageFormat,
+			                                        Samples       = _swapChain.MsaaSampleCount,
 			                                        LoadOp        = AttachmentLoadOp.Clear,
 			                                        StoreOp       = AttachmentStoreOp.Store,
 			                                        StencilLoadOp = AttachmentLoadOp.DontCare,
@@ -99,8 +101,8 @@ public unsafe class VulkanRenderPass : RenderPass
 
 		AttachmentDescription depthAttachment = new()
 		                                        {
-			                                        Format         = _device.SwapChainDepthStencilFormat,
-			                                        Samples        = _device.MsaaSampleCount,
+			                                        Format         = _swapChain.SwapChainDepthStencilFormat,
+			                                        Samples        = _swapChain.MsaaSampleCount,
 			                                        LoadOp         = AttachmentLoadOp.Clear,
 			                                        StoreOp        = AttachmentStoreOp.DontCare,
 			                                        StencilLoadOp  = AttachmentLoadOp.DontCare,
@@ -111,7 +113,7 @@ public unsafe class VulkanRenderPass : RenderPass
 
 		AttachmentDescription colorAttachmentResolve = new()
 		                                               {
-			                                               Format         = _device.SwapChainImageFormat,
+			                                               Format         = _swapChain.SwapChainImageFormat,
 			                                               Samples        = SampleCountFlags.Count1Bit,
 			                                               LoadOp         = AttachmentLoadOp.DontCare,
 			                                               StoreOp        = AttachmentStoreOp.Store,
@@ -173,7 +175,7 @@ public unsafe class VulkanRenderPass : RenderPass
 				                                      PDependencies   = &dependency,
 			                                      };
 
-			if (_api.Vk.CreateRenderPass(_device.Device, renderPassInfo, null, out renderPass) != Result.Success)
+			if (_api.Vk.CreateRenderPass(_logicalDevice.Device, renderPassInfo, null, out renderPass) != Result.Success)
 			{
 				throw new GfxException("Failed to create render pass!");
 			}

@@ -15,7 +15,7 @@ internal class GfxTestApplication
 	private Api?            _api;
 	private PhysicalDevice? _physicalDevice;
 	private LogicalDevice?  _logicalDevice;
-	private RenderPass?     _renderPass;
+	private SwapChain?      _swapChain;
 	
 	public void Run()
 	{
@@ -84,17 +84,17 @@ internal class GfxTestApplication
 	
 	private void CreateLogicalDevice()
 	{
-		_logicalDevice = _api!.CreateLogicalDevice(new LogicalDeviceOptions(_physicalDevice!, ImageFormat.B8G8R8Srgb, true));
+		_logicalDevice = _api!.CreateLogicalDevice(new LogicalDeviceOptions(_physicalDevice!));
 	}
 
-	private void CreateRenderPass()
+	private void CreateSwapChain()
 	{
-		_renderPass = _logicalDevice!.CreateRenderPass(new RenderPassOptions());
+		_swapChain = _logicalDevice!.CreateSwapChain(new SwapChainOptions(ImageFormat.B8G8R8Srgb, true));
 	}
 
 	private void CleanUp()
 	{
-		_renderPass?.Dispose();
+		_swapChain?.Dispose();
 		_logicalDevice?.Dispose();
 		_api?.Dispose();
 		_window.Dispose();
@@ -110,7 +110,7 @@ internal class GfxTestApplication
 		InitGfx();
 		PickPhysicalDevice();
 		CreateLogicalDevice();
-		CreateRenderPass();
+		CreateSwapChain();
 	}
 
 	private void OnUpdate(double obj)
