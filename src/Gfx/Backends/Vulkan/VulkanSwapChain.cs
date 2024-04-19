@@ -25,12 +25,12 @@ public unsafe class VulkanSwapChain : SwapChain
 	private Framebuffer[]? _swapChainFramebuffers;
 	
 	private Image        _colorImage;
-	private DeviceMemory _colorImageMemory;
+	private Silk.NET.Vulkan.DeviceMemory _colorImageMemory;
 	private ImageView    _colorImageView;
 
-	private Image        _depthImage;
-	private DeviceMemory _depthImageMemory;
-	private ImageView    _depthImageView;
+	private Image                        _depthImage;
+	private Silk.NET.Vulkan.DeviceMemory _depthImageMemory;
+	private ImageView                    _depthImageView;
 
 	private CommandPool _commandPool;
     
@@ -237,7 +237,7 @@ public unsafe class VulkanSwapChain : SwapChain
 		}
 	}
 
-	private void InitColorResources(ref Image colorImage, ref DeviceMemory colorImageMemory, ref ImageView colorImageView)
+	private void InitColorResources(ref Image colorImage, ref Silk.NET.Vulkan.DeviceMemory colorImageMemory, ref ImageView colorImageView)
 	{
 		Format colorFormat = SwapChainImageFormat;
 	
@@ -245,7 +245,7 @@ public unsafe class VulkanSwapChain : SwapChain
 		colorImageView = CreateImageView(colorImage, colorFormat, ImageAspectFlags.ColorBit, 1);
 	}
 	
-	private void InitDepthResources(ref Image depthImage, ref DeviceMemory depthImageMemory, ref ImageView depthImageView)
+	private void InitDepthResources(ref Image depthImage, ref Silk.NET.Vulkan.DeviceMemory depthImageMemory, ref ImageView depthImageView)
 	{
 		if (SwapChainDepthStencilFormat == Format.Undefined)
 		{
@@ -396,7 +396,7 @@ public unsafe class VulkanSwapChain : SwapChain
 		return imageView;
 	}
 	
-	private void CreateImage(uint width, uint height, uint mipLevels, SampleCountFlags numSamples, Format format, ImageTiling tiling, ImageUsageFlags usage, MemoryPropertyFlags properties, ref Image image, ref DeviceMemory imageMemory)
+	private void CreateImage(uint width, uint height, uint mipLevels, SampleCountFlags numSamples, Format format, ImageTiling tiling, ImageUsageFlags usage, MemoryPropertyFlags properties, ref Image image, ref Silk.NET.Vulkan.DeviceMemory imageMemory)
 	{
 		ImageCreateInfo imageInfo = new()
 		                            {
@@ -435,7 +435,7 @@ public unsafe class VulkanSwapChain : SwapChain
 			                               MemoryTypeIndex = FindMemoryType(memRequirements.MemoryTypeBits, properties),
 		                               };
 
-		fixed (DeviceMemory* imageMemoryPtr = &imageMemory)
+		fixed (Silk.NET.Vulkan.DeviceMemory* imageMemoryPtr = &imageMemory)
 		{
 			if (_api.Vk.AllocateMemory(_logicalDevice.Device, allocInfo, null, imageMemoryPtr) != Result.Success)
 			{

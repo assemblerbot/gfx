@@ -4,11 +4,11 @@ namespace Gfx;
 
 public unsafe class VulkanRenderPass : RenderPass
 {
-	private readonly VulkanApi       _api;
-	private readonly VulkanLogicalDevice   _logicalDevice;
-	private readonly VulkanSwapChain _swapChain;
+	private readonly VulkanApi           _api;
+	private readonly VulkanLogicalDevice _logicalDevice;
+	private readonly VulkanSwapChain     _swapChain;
 	
-	internal          Silk.NET.Vulkan.RenderPass RenderPass;
+	internal Silk.NET.Vulkan.RenderPass RenderPass;
 	
 	public VulkanRenderPass(VulkanApi api, VulkanLogicalDevice logicalDevice, VulkanSwapChain swapChain, RenderPassOptions options)
 	{

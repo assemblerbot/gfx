@@ -82,6 +82,21 @@ internal class GfxTestApplication
 		_physicalDevice = bestPhysicalDevice;
 	}
 	
+	private void ShowPhysicalDeviceInfo()
+	{
+		var memoryProperties = _physicalDevice.GetMemoryProperties();
+		foreach (var memoryInfo in memoryProperties.Memory)
+		{
+			Console.WriteLine($"  Memory kind:{memoryInfo.Kind:X} Heap index:{memoryInfo.HeapIndex}");
+		}
+
+		foreach (var heapInfo in memoryProperties.Heap)
+		{
+			Console.WriteLine($"  Heap kind:{heapInfo.Kind:X} Heap size:{heapInfo.Size}");
+		}
+	}
+
+	
 	private void CreateLogicalDevice()
 	{
 		_logicalDevice = _api!.CreateLogicalDevice(new LogicalDeviceOptions(_physicalDevice!));
@@ -109,6 +124,7 @@ internal class GfxTestApplication
 	{
 		InitGfx();
 		PickPhysicalDevice();
+		ShowPhysicalDeviceInfo();
 		CreateLogicalDevice();
 		CreateSwapChain();
 	}

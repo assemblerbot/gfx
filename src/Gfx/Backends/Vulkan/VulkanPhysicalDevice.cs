@@ -180,6 +180,42 @@ public unsafe class VulkanPhysicalDevice : PhysicalDevice
 	}
 	#endregion
 
+	#region Public
+
+	public override DeviceMemoryProperties GetMemoryProperties()
+	{
+		_api.Vk.GetPhysicalDeviceMemoryProperties(Device, out PhysicalDeviceMemoryProperties memProperties);
+		
+		List<DeviceMemoryProperties.MemoryInfo> memoryInfo = new();
+		for (int i = 0; i < memProperties.MemoryTypeCount; ++i)
+		{
+			memoryInfo.Add(
+				new DeviceMemoryProperties.MemoryInfo
+				(
+					memProperties.MemoryTypes[i].PropertyFlags.ToDeviceMemoryKind(),
+					(int)memProperties.MemoryTypes[i].HeapIndex
+				)
+			);
+		}
+
+		List<DeviceMemoryProperties.HeapInfo> heapInfo = new();
+		for (int i = 0; i < memProperties.MemoryHeapCount; ++i)
+		{
+			heapInfo.Add(
+				new DeviceMemoryProperties.HeapInfo
+				(
+					memProperties.MemoryHeaps[i].Flags.ToDeviceHeapKind(),
+					memProperties.MemoryHeaps[i].Size
+				)
+			);
+		}
+
+		return new DeviceMemoryProperties(memoryInfo, heapInfo);
+	}
+	
+	#endregion
+	
+	#region Internal
 	internal SampleCountFlags GetMaxMsaaSamplesCount()
 	{
 		SampleCountFlags counts = Properties.Limits.FramebufferColorSampleCounts & Properties.Limits.FramebufferDepthSampleCounts;
@@ -215,4 +251,5 @@ public unsafe class VulkanPhysicalDevice : PhysicalDevice
 
 		return Format.Undefined;
 	}
+	#endregion
 }
