@@ -2,16 +2,35 @@ using Silk.NET.Vulkan;
 
 namespace Gfx;
 
-public class VulkanDeviceMemory : DeviceMemory
+public unsafe class VulkanDeviceMemory : DeviceMemory
 {
-	internal VulkanDeviceMemory(DeviceMemoryOptions options)
+	private readonly VulkanApi                    _api;
+	private readonly VulkanLogicalDevice          _logicalDevice;
+	private          Silk.NET.Vulkan.DeviceMemory _memory;
+	
+	internal VulkanDeviceMemory(VulkanApi api, VulkanLogicalDevice logicalDevice, DeviceMemoryOptions options)
 	{
-		Silk.NET.Vulkan.MemoryPropertyFlags flags = options.Kind switch
+		_api           = api;
+		_logicalDevice = logicalDevice;
+
+		MemoryAllocateInfo allocateInfo = new()
+		                                  {
+			                                  SType           = StructureType.MemoryAllocateInfo,
+			                                  AllocationSize  = options.Size,
+			                                  MemoryTypeIndex = options.MemoryTypeIndex,
+		                                  };
+		
+		fixed (Silk.NET.Vulkan.DeviceMemory* bufferMemoryPtr = &_memory)
 		{
-			DeviceMemoryKind.DeviceLocal => MemoryPropertyFlags.DeviceLocalBit,
-			DeviceMemoryKind.HostVisible => MemoryPropertyFlags.HostVisibleBit | MemoryPropertyFlags.HostCoherentBit
-		};
-		
-		
+			if (_api.Vk.AllocateMemory(_logicalDevice.Device, allocateInfo, null, bufferMemoryPtr) != Result.Success)
+			{
+				throw new GfxException("Failed to allocate vertex buffer memory!");
+			}
+		}
+	}
+
+	public override void Dispose()
+	{
+		_api.Vk.FreeMemory(_logicalDevice.Device, _memory, null);
 	}
 }

@@ -16,6 +16,8 @@ internal class GfxTestApplication
 	private PhysicalDevice? _physicalDevice;
 	private LogicalDevice?  _logicalDevice;
 	private SwapChain?      _swapChain;
+
+	private DeviceMemory? _deviceMemory;
 	
 	public void Run()
 	{
@@ -95,7 +97,6 @@ internal class GfxTestApplication
 			Console.WriteLine($"  Heap kind:{heapInfo.Kind:X} Heap size:{heapInfo.Size}");
 		}
 	}
-
 	
 	private void CreateLogicalDevice()
 	{
@@ -109,6 +110,7 @@ internal class GfxTestApplication
 
 	private void CleanUp()
 	{
+		_deviceMemory?.Dispose();
 		_swapChain?.Dispose();
 		_logicalDevice?.Dispose();
 		_api?.Dispose();
@@ -127,6 +129,8 @@ internal class GfxTestApplication
 		ShowPhysicalDeviceInfo();
 		CreateLogicalDevice();
 		CreateSwapChain();
+
+		_deviceMemory = _logicalDevice.AllocateMemory(new DeviceMemoryOptions(1024, 1));
 	}
 
 	private void OnUpdate(double obj)

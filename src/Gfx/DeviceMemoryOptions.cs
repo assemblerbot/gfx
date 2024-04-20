@@ -2,12 +2,12 @@ namespace Gfx;
 
 public struct DeviceMemoryOptions
 {
-	public int              SizeInBytes;
-	public DeviceMemoryKind Kind;
+	public ulong Size;
+	public uint MemoryTypeIndex;
 
-	public DeviceMemoryOptions(int sizeInBytes, DeviceMemoryKind kind)
+	public DeviceMemoryOptions(ulong size, uint memoryTypeIndex)
 	{
-		SizeInBytes = sizeInBytes;
-		Kind        = kind;
+		Size     = size;
+		MemoryTypeIndex = memoryTypeIndex;
 	}
 }

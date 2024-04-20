@@ -39,6 +39,11 @@ public unsafe class VulkanLogicalDevice : LogicalDevice
 		return new VulkanSwapChain(_api, _physicalDevice, this, options);
 	}
 
+	public override DeviceMemory AllocateMemory(DeviceMemoryOptions options)
+	{
+		return new VulkanDeviceMemory(_api, this, options);
+	}
+
 	#region Initialization
 	private void InitDeviceAndQueues(out Device device, out Queue graphicsQueue, out Queue presentQueue)
 	{
