@@ -2,7 +2,7 @@ using Silk.NET.Vulkan;
 
 namespace Gfx;
 
-public unsafe class VulkanDeviceMemory : DeviceMemory
+public sealed unsafe class VulkanDeviceMemory : DeviceMemory
 {
 	private readonly VulkanApi                    _api;
 	private readonly VulkanLogicalDevice          _logicalDevice;

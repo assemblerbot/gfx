@@ -5,7 +5,7 @@ using Semaphore = Silk.NET.Vulkan.Semaphore;
 
 namespace Gfx;
 
-public unsafe class VulkanSwapChain : SwapChain
+public sealed unsafe class VulkanSwapChain : SwapChain
 {
 	private readonly int _maxFramesInFlight;      // max number of frames that can be rendered at the same time
 	
@@ -154,14 +154,14 @@ public unsafe class VulkanSwapChain : SwapChain
 		{
 			createInfo = createInfo with
 			             {
-				             ImageSharingMode = SharingMode.Concurrent,
+				             ImageSharingMode = Silk.NET.Vulkan.SharingMode.Concurrent,
 				             QueueFamilyIndexCount = 2,
 				             PQueueFamilyIndices = queueFamilyIndices,
 			             };
 		}
 		else
 		{
-			createInfo.ImageSharingMode = SharingMode.Exclusive;
+			createInfo.ImageSharingMode = Silk.NET.Vulkan.SharingMode.Exclusive;
 		}
 
 		createInfo = createInfo with
@@ -415,7 +415,7 @@ public unsafe class VulkanSwapChain : SwapChain
 			                            InitialLayout = ImageLayout.Undefined,
 			                            Usage         = usage,
 			                            Samples       = numSamples,
-			                            SharingMode   = SharingMode.Exclusive,
+			                            SharingMode   = Silk.NET.Vulkan.SharingMode.Exclusive,
 		                            };
 
 		fixed (Image* imagePtr = &image)

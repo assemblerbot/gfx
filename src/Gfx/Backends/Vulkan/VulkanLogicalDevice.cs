@@ -4,12 +4,12 @@ using Silk.NET.Vulkan;
 
 namespace Gfx;
 
-public unsafe class VulkanLogicalDevice : LogicalDevice
+public sealed unsafe class VulkanLogicalDevice : LogicalDevice
 {
 	private const float _queuePriority = 1f; // from every queue family we need just one queue (priority: 0..1)
 	
 	private readonly VulkanApi            _api;
-	private readonly VulkanPhysicalDevice _physicalDevice;
+	internal readonly VulkanPhysicalDevice PhysicalDevice;
     
 	internal readonly Device Device;
 
@@ -19,7 +19,7 @@ public unsafe class VulkanLogicalDevice : LogicalDevice
 	internal VulkanLogicalDevice(VulkanApi api, LogicalDeviceOptions options)
 	{
 		_api            = api;
-		_physicalDevice = (VulkanPhysicalDevice)options.PhysicalDevice;
+		PhysicalDevice = (VulkanPhysicalDevice)options.PhysicalDevice;
 
 		InitDeviceAndQueues(out Device, out _graphicsQueue, out _presentQueue);
 	}
@@ -36,7 +36,7 @@ public unsafe class VulkanLogicalDevice : LogicalDevice
 
 	public override SwapChain CreateSwapChain(SwapChainOptions options)
 	{
-		return new VulkanSwapChain(_api, _physicalDevice, this, options);
+		return new VulkanSwapChain(_api, PhysicalDevice, this, options);
 	}
 
 	public override DeviceMemory AllocateMemory(DeviceMemoryOptions options)
@@ -44,10 +44,15 @@ public unsafe class VulkanLogicalDevice : LogicalDevice
 		return new VulkanDeviceMemory(_api, this, options);
 	}
 
+	public override DeviceBuffer AllocateBuffer(DeviceBufferOptions options)
+	{
+		return new VulkanDeviceBuffer(_api, this, options);
+	}
+
 	#region Initialization
 	private void InitDeviceAndQueues(out Device device, out Queue graphicsQueue, out Queue presentQueue)
 	{
-		uint[] uniqueQueueFamilies = { _physicalDevice.GraphicsQueueFamily!.Value, _physicalDevice.PresentQueueFamily!.Value };
+		uint[] uniqueQueueFamilies = { PhysicalDevice.GraphicsQueueFamily!.Value, PhysicalDevice.PresentQueueFamily!.Value };
 		uniqueQueueFamilies = uniqueQueueFamilies.Distinct().ToArray();
 
 		using var mem              = GlobalMemory.Allocate(uniqueQueueFamilies.Length * sizeof(DeviceQueueCreateInfo));
@@ -92,13 +97,13 @@ public unsafe class VulkanLogicalDevice : LogicalDevice
 			createInfo.EnabledLayerCount = 0;
 		}
 
-		if (_api.Vk.CreateDevice(_physicalDevice.Device, in createInfo, null, out device) != Result.Success)
+		if (_api.Vk.CreateDevice(PhysicalDevice.Device, in createInfo, null, out device) != Result.Success)
 		{
 			throw new GfxException("Failed to create logical device!");
 		}
 
-		_api.Vk.GetDeviceQueue(Device, _physicalDevice.GraphicsQueueFamily!.Value, 0, out graphicsQueue);
-		_api.Vk.GetDeviceQueue(Device, _physicalDevice.PresentQueueFamily!.Value,  0, out presentQueue);
+		_api.Vk.GetDeviceQueue(Device, PhysicalDevice.GraphicsQueueFamily!.Value, 0, out graphicsQueue);
+		_api.Vk.GetDeviceQueue(Device, PhysicalDevice.PresentQueueFamily!.Value,  0, out presentQueue);
 
 		if (_api.IsDebugEnabled)
 		{

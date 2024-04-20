@@ -5,7 +5,7 @@ using Silk.NET.Vulkan.Extensions.KHR;
 
 namespace Gfx;
 
-public unsafe class VulkanPhysicalDevice : PhysicalDevice
+public sealed unsafe class VulkanPhysicalDevice : PhysicalDevice
 {
 	private readonly VulkanApi                      _api;
 	public readonly Silk.NET.Vulkan.PhysicalDevice Device;
@@ -182,15 +182,15 @@ public unsafe class VulkanPhysicalDevice : PhysicalDevice
 
 	#region Public
 
-	public override DeviceMemoryProperties GetMemoryProperties()
+	public override DeviceMemoryInfo GetMemoryInfo()
 	{
 		_api.Vk.GetPhysicalDeviceMemoryProperties(Device, out PhysicalDeviceMemoryProperties memProperties);
 		
-		List<DeviceMemoryProperties.MemoryInfo> memoryInfo = new();
+		List<DeviceMemoryInfo.MemoryInfo> memoryInfo = new();
 		for (int i = 0; i < memProperties.MemoryTypeCount; ++i)
 		{
 			memoryInfo.Add(
-				new DeviceMemoryProperties.MemoryInfo
+				new DeviceMemoryInfo.MemoryInfo
 				(
 					memProperties.MemoryTypes[i].PropertyFlags.ToDeviceMemoryKind(),
 					(int)memProperties.MemoryTypes[i].HeapIndex
@@ -198,11 +198,11 @@ public unsafe class VulkanPhysicalDevice : PhysicalDevice
 			);
 		}
 
-		List<DeviceMemoryProperties.HeapInfo> heapInfo = new();
+		List<DeviceMemoryInfo.HeapInfo> heapInfo = new();
 		for (int i = 0; i < memProperties.MemoryHeapCount; ++i)
 		{
 			heapInfo.Add(
-				new DeviceMemoryProperties.HeapInfo
+				new DeviceMemoryInfo.HeapInfo
 				(
 					memProperties.MemoryHeaps[i].Flags.ToDeviceHeapKind(),
 					memProperties.MemoryHeaps[i].Size
@@ -210,7 +210,7 @@ public unsafe class VulkanPhysicalDevice : PhysicalDevice
 			);
 		}
 
-		return new DeviceMemoryProperties(memoryInfo, heapInfo);
+		return new DeviceMemoryInfo(memoryInfo, heapInfo);
 	}
 	
 	#endregion
@@ -251,5 +251,21 @@ public unsafe class VulkanPhysicalDevice : PhysicalDevice
 
 		return Format.Undefined;
 	}
+
+	internal uint FindMemoryIndex(uint typeIndexFilter, MemoryPropertyFlags properties)
+	{
+		_api.Vk.GetPhysicalDeviceMemoryProperties(Device, out PhysicalDeviceMemoryProperties memProperties);
+		
+		for (int i = 0; i < memProperties.MemoryTypeCount; i++)
+		{
+			if ((typeIndexFilter & (1 << i)) != 0 && (memProperties.MemoryTypes[i].PropertyFlags & properties) == properties)
+			{
+				return (uint)i;
+			}
+		}
+
+		return uint.MaxValue;
+	}
+
 	#endregion
 }

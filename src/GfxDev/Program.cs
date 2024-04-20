@@ -86,15 +86,15 @@ internal class GfxTestApplication
 	
 	private void ShowPhysicalDeviceInfo()
 	{
-		var memoryProperties = _physicalDevice.GetMemoryProperties();
+		var memoryProperties = _physicalDevice.GetMemoryInfo();
 		foreach (var memoryInfo in memoryProperties.Memory)
 		{
-			Console.WriteLine($"  Memory kind:{memoryInfo.Kind:X} Heap index:{memoryInfo.HeapIndex}");
+			Console.WriteLine($"  Memory kind:{memoryInfo.Properties:X} Heap index:{memoryInfo.HeapIndex}");
 		}
 
 		foreach (var heapInfo in memoryProperties.Heap)
 		{
-			Console.WriteLine($"  Heap kind:{heapInfo.Kind:X} Heap size:{heapInfo.Size}");
+			Console.WriteLine($"  Heap kind:{heapInfo.Properties:X} Heap size:{heapInfo.Size}");
 		}
 	}
 	

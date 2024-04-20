@@ -1,7 +1,7 @@
 namespace Gfx;
 
 [Flags]
-public enum DeviceHeapKind
+public enum DeviceHeapProperties
 {
 	None = 0,
 	Local = 1 << 0,			// device local heap

@@ -2,7 +2,7 @@ using Silk.NET.Vulkan;
 
 namespace Gfx;
 
-public class VulkanSwapChainSupportDetails
+public sealed class VulkanSwapChainSupportDetails
 {
 	public SurfaceCapabilitiesKHR Capabilities;
 	public SurfaceFormatKHR[]     Formats;

@@ -1,37 +1,11 @@
 namespace Gfx;
 
-public class DeviceMemoryProperties
+[Flags]
+public enum DeviceMemoryProperties
 {
-	public readonly struct MemoryInfo
-	{
-		public readonly DeviceMemoryKind Kind;
-		public readonly int              HeapIndex;
-
-		public MemoryInfo(DeviceMemoryKind kind, int heapIndex)
-		{
-			Kind      = kind;
-			HeapIndex = heapIndex;
-		}
-	}
-
-	public readonly struct HeapInfo
-	{
-		public readonly DeviceHeapKind Kind;
-		public readonly ulong          Size;
-
-		public HeapInfo(DeviceHeapKind kind, ulong size)
-		{
-			Kind = kind;
-			Size = size;
-		}
-	}
-
-	public readonly IReadOnlyList<MemoryInfo> Memory;
-	public readonly IReadOnlyList<HeapInfo>   Heap;
-
-	public DeviceMemoryProperties(IReadOnlyList<MemoryInfo> memory, IReadOnlyList<HeapInfo> heap)
-	{
-		Memory = memory;
-		Heap   = heap;
-	}
+	None         = 0,
+	DeviceLocal  = 1 << 0, // fast GPU access
+	HostVisible  = 1 << 1, // accessible by CPU
+	Cached       = 1 << 2, // fast CPU read access
+	HostCoherent = 1 << 3, // no need to invalidate before write and flush after write
 }

@@ -2,7 +2,7 @@ using Silk.NET.Vulkan;
 
 namespace Gfx;
 
-public unsafe class VulkanRenderPass : RenderPass
+public sealed unsafe class VulkanRenderPass : RenderPass
 {
 	private readonly VulkanApi           _api;
 	private readonly VulkanLogicalDevice _logicalDevice;

@@ -8,5 +8,5 @@ public abstract class PhysicalDevice
 	public abstract bool SupportsGraphics { get; }
 	public abstract bool SupportsCompute  { get; }
 
-	public abstract DeviceMemoryProperties GetMemoryProperties();
+	public abstract DeviceMemoryInfo GetMemoryInfo();
 }
