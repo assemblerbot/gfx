@@ -5,14 +5,14 @@ namespace Gfx;
 
 public sealed unsafe class VulkanDeviceBuffer : DeviceBuffer
 {
-	private readonly VulkanApi              _api;
-	private readonly VulkanLogicalDevice    _logicalDevice;
-	private          Buffer                 _buffer;
+	private readonly VulkanApi           _api;
+	private readonly VulkanLogicalDevice _logicalDevice;
+	private readonly Buffer              _buffer;
 	
 	internal VulkanDeviceBuffer(VulkanApi api, VulkanLogicalDevice logicalDevice, DeviceBufferOptions options)
 	{
-		_api                      = api;
-		_logicalDevice            = logicalDevice;
+		_api           = api;
+		_logicalDevice = logicalDevice;
 		
 		BufferCreateInfo bufferInfo = new()
 		                              {
@@ -54,5 +54,27 @@ public sealed unsafe class VulkanDeviceBuffer : DeviceBuffer
 		alignment   = memRequirements.Alignment;
 		size        = memRequirements.Size;
 		return true;
+	}
+
+	public override bool GetMemoryRequirements(uint suggestedMemoryIndex, out ulong alignment, out ulong size)
+	{
+		MemoryRequirements memRequirements = new();
+		_api.Vk.GetBufferMemoryRequirements(_logicalDevice.Device, _buffer, out memRequirements);
+
+		if ((memRequirements.MemoryTypeBits & (1 << (int)suggestedMemoryIndex)) == 0)
+		{
+			alignment = 0;
+			size      = 0;
+			return false;
+		}
+
+		alignment = memRequirements.Alignment;
+		size      = memRequirements.Size;
+		return true;
+	}
+
+	public override void BindToMemory(DeviceMemory memory, ulong memoryOffset)
+	{
+		_api.Vk.BindBufferMemory(_logicalDevice.Device, _buffer, ((VulkanDeviceMemory)memory).Memory, memoryOffset);
 	}
 }

@@ -4,9 +4,9 @@ namespace Gfx;
 
 public sealed unsafe class VulkanDeviceMemory : DeviceMemory
 {
-	private readonly VulkanApi                    _api;
-	private readonly VulkanLogicalDevice          _logicalDevice;
-	private          Silk.NET.Vulkan.DeviceMemory _memory;
+	private readonly  VulkanApi                    _api;
+	private readonly  VulkanLogicalDevice          _logicalDevice;
+	internal readonly Silk.NET.Vulkan.DeviceMemory Memory;
 	
 	internal VulkanDeviceMemory(VulkanApi api, VulkanLogicalDevice logicalDevice, DeviceMemoryOptions options)
 	{
@@ -20,7 +20,7 @@ public sealed unsafe class VulkanDeviceMemory : DeviceMemory
 			                                  MemoryTypeIndex = options.MemoryTypeIndex,
 		                                  };
 		
-		fixed (Silk.NET.Vulkan.DeviceMemory* bufferMemoryPtr = &_memory)
+		fixed (Silk.NET.Vulkan.DeviceMemory* bufferMemoryPtr = &Memory)
 		{
 			if (_api.Vk.AllocateMemory(_logicalDevice.Device, allocateInfo, null, bufferMemoryPtr) != Result.Success)
 			{
@@ -31,6 +31,6 @@ public sealed unsafe class VulkanDeviceMemory : DeviceMemory
 
 	public override void Dispose()
 	{
-		_api.Vk.FreeMemory(_logicalDevice.Device, _memory, null);
+		_api.Vk.FreeMemory(_logicalDevice.Device, Memory, null);
 	}
 }
