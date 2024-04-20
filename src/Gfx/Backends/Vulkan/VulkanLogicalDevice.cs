@@ -49,6 +49,11 @@ public sealed unsafe class VulkanLogicalDevice : LogicalDevice
 		return new VulkanDeviceBuffer(_api, this, options);
 	}
 
+	public override Shader CreateShader(ShaderOptions options)
+	{
+		return new VulkanShader(_api, this, options);
+	}
+
 	#region Initialization
 	private void InitDeviceAndQueues(out Device device, out Queue graphicsQueue, out Queue presentQueue)
 	{

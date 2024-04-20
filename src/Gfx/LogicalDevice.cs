@@ -8,4 +8,5 @@ public abstract class LogicalDevice : IDisposable
 	public abstract SwapChain    CreateSwapChain(SwapChainOptions   options);
 	public abstract DeviceMemory AllocateMemory(DeviceMemoryOptions options);
 	public abstract DeviceBuffer AllocateBuffer(DeviceBufferOptions options);
+	public abstract Shader       CreateShader(ShaderOptions         options);
 }
