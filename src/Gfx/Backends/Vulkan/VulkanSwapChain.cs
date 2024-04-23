@@ -15,25 +15,23 @@ public sealed unsafe class VulkanSwapChain : SwapChain
 
 	internal readonly SampleCountFlags MsaaSampleCount;
 
-	private           KhrSwapchain?    _khrSwapChain;
-	private           SwapchainKHR     _swapChain;
-	private           Image[]?         _swapChainImages;
-	internal          Format           SwapChainImageFormat;
-	internal          Format           SwapChainDepthStencilFormat;
-	private           Extent2D         _swapChainExtent;
-	private           ImageView[]?     _swapChainImageViews;
-	private Framebuffer[]? _swapChainFramebuffers;
+	private  KhrSwapchain?  _khrSwapChain;
+	private  SwapchainKHR   _swapChain;
+	private  Image[]?       _swapChainImages;
+	internal Format         SwapChainImageFormat;
+	internal Format         SwapChainDepthStencilFormat;
+	private  Extent2D       _swapChainExtent;
+	private  ImageView[]?   _swapChainImageViews;
+	private  Framebuffer[]? _swapChainFramebuffers;
 	
-	private Image        _colorImage;
+	private Image                        _colorImage;
 	private Silk.NET.Vulkan.DeviceMemory _colorImageMemory;
-	private ImageView    _colorImageView;
+	private ImageView                    _colorImageView;
 
 	private Image                        _depthImage;
 	private Silk.NET.Vulkan.DeviceMemory _depthImageMemory;
 	private ImageView                    _depthImageView;
 
-	private CommandPool _commandPool;
-    
 	private Semaphore[]? _imageAvailableSemaphores;
 	private Semaphore[]? _renderFinishedSemaphores;
 	private Fence[]?     _inFlightFences;
@@ -57,7 +55,6 @@ public sealed unsafe class VulkanSwapChain : SwapChain
 		InitFrameBuffers(out _swapChainFramebuffers);
 		InitColorResources(ref _colorImage, ref _colorImageMemory, ref _colorImageView);
 		InitDepthResources(ref _depthImage, ref _depthImageMemory, ref _depthImageView);
-		InitCommandPool(out _commandPool);
 		InitSyncObjects(out _imageAvailableSemaphores, out _renderFinishedSemaphores, out _inFlightFences, out _imagesInFlight);
 	}
 
@@ -101,8 +98,6 @@ public sealed unsafe class VulkanSwapChain : SwapChain
 			_api.Vk.DestroySemaphore(_logicalDevice.Device, _imageAvailableSemaphores![i], null);
 			_api.Vk.DestroyFence(_logicalDevice.Device, _inFlightFences![i], null);
 		}
-		
-		_api.Vk.DestroyCommandPool(_logicalDevice.Device, _commandPool, null);
 	}
 	
 	#region Initialization
@@ -259,20 +254,6 @@ public sealed unsafe class VulkanSwapChain : SwapChain
 	
 		CreateImage(_swapChainExtent.Width, _swapChainExtent.Height, 1, MsaaSampleCount, depthFormat, ImageTiling.Optimal, ImageUsageFlags.DepthStencilAttachmentBit, MemoryPropertyFlags.DeviceLocalBit, ref depthImage, ref depthImageMemory);
 		depthImageView = CreateImageView(depthImage, depthFormat, ImageAspectFlags.DepthBit, 1);
-	}
-
-	private void InitCommandPool(out CommandPool commandPool)
-	{
-		CommandPoolCreateInfo poolInfo = new()
-		                                 {
-			                                 SType            = StructureType.CommandPoolCreateInfo,
-			                                 QueueFamilyIndex = _physicalDevice.GraphicsQueueFamily!.Value,
-		                                 };
-
-		if (_api.Vk.CreateCommandPool(_logicalDevice.Device, poolInfo, null, out commandPool) != Result.Success)
-		{
-			throw new Exception("failed to create command pool!");
-		}
 	}
 
 	private void InitSyncObjects(

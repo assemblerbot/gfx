@@ -16,16 +16,20 @@ public sealed unsafe class VulkanLogicalDevice : LogicalDevice
 	private readonly  Queue  _graphicsQueue;
 	private readonly  Queue  _presentQueue;
 	
+	public readonly CommandPool CommandPool;
+    
 	internal VulkanLogicalDevice(VulkanApi api, LogicalDeviceOptions options)
 	{
 		_api            = api;
 		PhysicalDevice = (VulkanPhysicalDevice)options.PhysicalDevice;
 
 		InitDeviceAndQueues(out Device, out _graphicsQueue, out _presentQueue);
+		InitCommandPool(out CommandPool);
 	}
 
 	public override void Dispose()
 	{
+		_api.Vk.DestroyCommandPool(Device, CommandPool, null);
 		_api.Vk.DestroyDevice(Device, null);
 	}
 
@@ -44,7 +48,7 @@ public sealed unsafe class VulkanLogicalDevice : LogicalDevice
 		return new VulkanDeviceMemory(_api, this, options);
 	}
 
-	public override DeviceBuffer AllocateBuffer(DeviceBufferOptions options)
+	public override DeviceBuffer CreateBuffer(DeviceBufferOptions options)
 	{
 		return new VulkanDeviceBuffer(_api, this, options);
 	}
@@ -52,6 +56,11 @@ public sealed unsafe class VulkanLogicalDevice : LogicalDevice
 	public override Shader CreateShader(ShaderOptions options)
 	{
 		return new VulkanShader(_api, this, options);
+	}
+
+	public override CommandBuffer CreateCommandBuffer(CommandBufferOptions options)
+	{
+		return new VulkanCommandBuffer(_api, this, options);
 	}
 
 	#region Initialization
@@ -118,6 +127,19 @@ public sealed unsafe class VulkanLogicalDevice : LogicalDevice
 		SilkMarshal.Free((nint)createInfo.PpEnabledExtensionNames);
 	}
 
+	private void InitCommandPool(out CommandPool commandPool)
+	{
+		CommandPoolCreateInfo poolInfo = new()
+		                                 {
+			                                 SType            = StructureType.CommandPoolCreateInfo,
+			                                 QueueFamilyIndex = PhysicalDevice.GraphicsQueueFamily!.Value,
+		                                 };
+
+		if (_api.Vk.CreateCommandPool(Device, poolInfo, null, out commandPool) != Result.Success)
+		{
+			throw new GfxException("Failed to create command pool!");
+		}
+	}
 	#endregion
 	
 }

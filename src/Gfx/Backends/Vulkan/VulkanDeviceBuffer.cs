@@ -77,4 +77,8 @@ public sealed unsafe class VulkanDeviceBuffer : DeviceBuffer
 	{
 		_api.Vk.BindBufferMemory(_logicalDevice.Device, _buffer, ((VulkanDeviceMemory)memory).Memory, memoryOffset);
 	}
+
+	public override void CopyTo(DeviceBuffer dstBuffer, ulong size)
+	{
+	}
 }

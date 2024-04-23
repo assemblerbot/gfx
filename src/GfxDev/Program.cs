@@ -1,12 +1,19 @@
-﻿using Gfx;
+﻿using System.Numerics;
+using Gfx;
 using Silk.NET.Maths;
 using Silk.NET.Windowing;
 
 GfxTestApplication app = new ();
 app.Run();
 
-internal class GfxTestApplication
+internal unsafe class GfxTestApplication
 {
+	private struct Vertex
+	{
+		public Vector3 Position;
+		public Vector4 Color;
+	}
+
 	private const GraphicsBackend _graphicsBackend = GraphicsBackend.Vulkan;
 	private       IWindow         _window;
 	public        IWindow         NativeWindow => _window;
@@ -17,7 +24,11 @@ internal class GfxTestApplication
 	private LogicalDevice?  _logicalDevice;
 	private SwapChain?      _swapChain;
 
-	private DeviceMemory? _deviceMemory;
+	// mesh
+	private DeviceBuffer? _vertexBuffer;
+	private DeviceMemory? _vertexBufferMemory;
+	private DeviceBuffer? _indexBuffer;
+	private DeviceMemory? _indexBufferMemory;
 	
 	public void Run()
 	{
@@ -108,9 +119,85 @@ internal class GfxTestApplication
 		_swapChain = _logicalDevice!.CreateSwapChain(new SwapChainOptions(ImageFormat.B8G8R8Srgb, true));
 	}
 
+	private void CreateMesh()
+	{
+		// prepare triangle
+		Vertex[] vertices = new[]
+		                    {
+			                    new Vertex{Position = new(-0.5f, 0f, 0.5f), Color = new (1f,0f,0f,1f)},
+			                    new Vertex{Position = new(0f, 0.5f, 0.5f), Color = new (0f,1f,0f,1f)},
+			                    new Vertex{Position = new(0.5f, 0f, 0.5f), Color = new (0f,0f,1f,1f)},
+		                    };
+
+		ulong verticesSize = (ulong) (sizeof(Vertex) * vertices.Length); 
+
+		{
+			// create staging buffer
+			using DeviceBuffer stagingBuffer = _logicalDevice.CreateBuffer(
+				new DeviceBufferOptions(
+					verticesSize,
+					DeviceBufferUsage.TransferSrc,
+					SharingMode.Excludive
+				)
+			);
+
+			stagingBuffer.GetMemoryRequirements(
+				DeviceMemoryProperties.HostVisible | DeviceMemoryProperties.HostCoherent,
+				out uint stagingMemoryIndex,
+				out ulong stagingMemoryAlignment,
+				out ulong stagingMemorySize
+			);
+
+			using DeviceMemory stagingBufferMemory = _logicalDevice.AllocateMemory(
+				new DeviceMemoryOptions(
+					stagingMemorySize,
+					stagingMemoryIndex
+				)
+			);
+
+			stagingBuffer.BindToMemory(stagingBufferMemory, 0);
+
+			// fill staging buffer
+			stagingBufferMemory.Write(0, vertices.AsSpan());
+			
+			// create vertex buffer
+			_vertexBuffer = _logicalDevice.CreateBuffer(
+				new DeviceBufferOptions(
+					verticesSize,
+					DeviceBufferUsage.TransferDst | DeviceBufferUsage.VertexBuffer,
+					SharingMode.Excludive
+				)
+			);
+
+			_vertexBuffer.GetMemoryRequirements(
+				DeviceMemoryProperties.DeviceLocal,
+				out uint vertexBufferMemoryIndex,
+				out ulong vertexBufferMemoryAlignment,
+				out ulong vertexBufferMemorySize
+			);
+
+			_vertexBufferMemory = _logicalDevice.AllocateMemory(
+				new DeviceMemoryOptions(
+					vertexBufferMemorySize,
+					vertexBufferMemoryIndex
+				)
+			);
+
+			_vertexBuffer.BindToMemory(_vertexBufferMemory, 0);
+			
+			// copy data from staging buffer to vertex buffer
+			//TODO
+		}
+	}
+
 	private void CleanUp()
 	{
-		_deviceMemory?.Dispose();
+		_vertexBuffer?.Dispose();
+		_vertexBufferMemory?.Dispose();
+
+		_indexBuffer?.Dispose();
+		_indexBufferMemory?.Dispose();
+		
 		_swapChain?.Dispose();
 		_logicalDevice?.Dispose();
 		_api?.Dispose();
@@ -130,14 +217,15 @@ internal class GfxTestApplication
 		CreateLogicalDevice();
 		CreateSwapChain();
 
-		_deviceMemory = _logicalDevice.AllocateMemory(new DeviceMemoryOptions(1024, 1));
+		CreateMesh();
+		//_deviceMemory = _logicalDevice.AllocateMemory(new DeviceMemoryOptions(1024, 1));
 	}
 
-	private void OnUpdate(double obj)
+	private void OnUpdate(double timeDelta)
 	{
 	}
 
-	private void OnRender(double obj)
+	private void OnRender(double timeDelta)
 	{
 	}
 
@@ -145,8 +233,13 @@ internal class GfxTestApplication
 	{
 	}
 
-	private void OnResize(Vector2D<int> obj)
+	private void OnResize(Vector2D<int> size)
 	{
+		_logicalDevice?.WaitIdle();
+		
+		//TODO - destroy
+		
+		//TODO - create 
 	}
 	#endregion Main callbacks
 }
