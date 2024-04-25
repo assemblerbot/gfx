@@ -7,7 +7,7 @@ public sealed unsafe class VulkanDeviceBuffer : DeviceBuffer
 {
 	private readonly VulkanApi           _api;
 	private readonly VulkanLogicalDevice _logicalDevice;
-	private readonly Buffer              _buffer;
+	public readonly Buffer              Buffer;
 	
 	internal VulkanDeviceBuffer(VulkanApi api, VulkanLogicalDevice logicalDevice, DeviceBufferOptions options)
 	{
@@ -22,7 +22,7 @@ public sealed unsafe class VulkanDeviceBuffer : DeviceBuffer
 			                              SharingMode = options.SharingMode.ToVulkanSharingMode(),
 		                              };
 
-		fixed (Buffer* bufferPtr = &_buffer)
+		fixed (Buffer* bufferPtr = &Buffer)
 		{
 			if (_api.Vk.CreateBuffer(_logicalDevice.Device, bufferInfo, null, bufferPtr) != Result.Success)
 			{
@@ -33,13 +33,13 @@ public sealed unsafe class VulkanDeviceBuffer : DeviceBuffer
 
 	public override void Dispose()
 	{
-		_api.Vk.DestroyBuffer(_logicalDevice.Device, _buffer, null);
+		_api.Vk.DestroyBuffer(_logicalDevice.Device, Buffer, null);
 	}
 
 	public override bool GetMemoryRequirements(DeviceMemoryProperties requiredProperties, out uint memoryIndex, out ulong alignment, out ulong size)
 	{
 		MemoryRequirements memRequirements = new();
-		_api.Vk.GetBufferMemoryRequirements(_logicalDevice.Device, _buffer, out memRequirements);
+		_api.Vk.GetBufferMemoryRequirements(_logicalDevice.Device, Buffer, out memRequirements);
 
 		uint index = _logicalDevice.PhysicalDevice.FindMemoryIndex(memRequirements.MemoryTypeBits, requiredProperties.ToMemoryPropertyFlags());
 		if (index == uint.MaxValue)
@@ -59,7 +59,7 @@ public sealed unsafe class VulkanDeviceBuffer : DeviceBuffer
 	public override bool GetMemoryRequirements(uint suggestedMemoryIndex, out ulong alignment, out ulong size)
 	{
 		MemoryRequirements memRequirements = new();
-		_api.Vk.GetBufferMemoryRequirements(_logicalDevice.Device, _buffer, out memRequirements);
+		_api.Vk.GetBufferMemoryRequirements(_logicalDevice.Device, Buffer, out memRequirements);
 
 		if ((memRequirements.MemoryTypeBits & (1 << (int)suggestedMemoryIndex)) == 0)
 		{
@@ -75,10 +75,6 @@ public sealed unsafe class VulkanDeviceBuffer : DeviceBuffer
 
 	public override void BindToMemory(DeviceMemory memory, ulong memoryOffset)
 	{
-		_api.Vk.BindBufferMemory(_logicalDevice.Device, _buffer, ((VulkanDeviceMemory)memory).Memory, memoryOffset);
-	}
-
-	public override void CopyTo(DeviceBuffer dstBuffer, ulong size)
-	{
+		_api.Vk.BindBufferMemory(_logicalDevice.Device, Buffer, ((VulkanDeviceMemory)memory).Memory, memoryOffset);
 	}
 }

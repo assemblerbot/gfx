@@ -63,6 +63,32 @@ public sealed unsafe class VulkanLogicalDevice : LogicalDevice
 		return new VulkanCommandBuffer(_api, this, options);
 	}
 
+	public override void QueueSubmit(DeviceQueue queue, CommandBuffer commandBuffer)
+	{
+		fixed (Silk.NET.Vulkan.CommandBuffer* buffer = &((VulkanCommandBuffer) commandBuffer).CommandBuffer)
+		{
+
+			SubmitInfo submitInfo = new()
+			                        {
+				                        SType              = StructureType.SubmitInfo,
+				                        CommandBufferCount = 1,
+				                        PCommandBuffers    = buffer,
+			                        };
+
+			_api.Vk.QueueSubmit(GetQueue(queue), 1, submitInfo, default);
+		}
+	}
+
+	public override void QueueSubmit(DeviceQueue queue, CommandBuffer commandBuffer, SwapChain swapChain, int fenceIndex)
+	{
+		throw new NotImplementedException(); // todo - get fence by index from swap chain
+	}
+
+	public override void QueueWaitIdle(DeviceQueue queue)
+	{
+		_api.Vk.QueueWaitIdle(GetQueue(queue));
+	}
+
 	#region Initialization
 	private void InitDeviceAndQueues(out Device device, out Queue graphicsQueue, out Queue presentQueue)
 	{
@@ -140,6 +166,16 @@ public sealed unsafe class VulkanLogicalDevice : LogicalDevice
 			throw new GfxException("Failed to create command pool!");
 		}
 	}
+
+	private Queue GetQueue(DeviceQueue queue)
+	{
+		return queue switch
+		{
+			DeviceQueue.Graphics => _graphicsQueue,
+			DeviceQueue.Present => _presentQueue,
+		};
+	}
+
 	#endregion
 	
 }

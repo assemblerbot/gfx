@@ -10,6 +10,4 @@ public abstract class DeviceBuffer : IDisposable
 	public abstract bool GetMemoryRequirements(uint                   suggestedMemoryIndex, out ulong alignment,   out ulong size);
 
 	public abstract void BindToMemory(DeviceMemory memory, ulong memoryOffset);
-
-	public abstract void CopyTo(DeviceBuffer dstBuffer, ulong size);
 }
