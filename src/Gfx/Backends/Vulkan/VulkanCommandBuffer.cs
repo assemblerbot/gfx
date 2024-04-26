@@ -10,6 +10,9 @@ public sealed class VulkanCommandBuffer : CommandBuffer
 	
 	public VulkanCommandBuffer(VulkanApi api, VulkanLogicalDevice logicalDevice, CommandBufferOptions options)
 	{
+		_api           = api;
+		_logicalDevice = logicalDevice;
+		
 		CommandBufferAllocateInfo allocateInfo = new()
 		                                         {
 			                                         SType              = StructureType.CommandBufferAllocateInfo,

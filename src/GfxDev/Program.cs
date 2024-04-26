@@ -30,6 +30,10 @@ internal unsafe class GfxTestApplication
 	private DeviceBuffer? _indexBuffer;
 	private DeviceMemory? _indexBufferMemory;
 	
+	// shaders
+	private Shader? _vertexShader;
+	private Shader? _pixelShader;
+	
 	public void Run()
 	{
 		InitWindow();
@@ -186,12 +190,35 @@ internal unsafe class GfxTestApplication
 			_vertexBuffer.BindToMemory(_vertexBufferMemory, 0);
 			
 			// copy data from staging buffer to vertex buffer
-			//TODO
+			{
+				using CommandBuffer commandBuffer = _logicalDevice.CreateCommandBuffer(new CommandBufferOptions(CommandBufferLevel.Primary));
+
+				commandBuffer.Begin(CommandBufferUsage.OneTimeSubmit);
+
+				commandBuffer.CopyBuffer(stagingBuffer, _vertexBuffer, 0, 0, verticesSize);
+				
+				commandBuffer.End();
+
+				_logicalDevice.QueueSubmit(DeviceQueue.Graphics, commandBuffer);
+				_logicalDevice.QueueWaitIdle(DeviceQueue.Graphics);
+			}
 		}
+	}
+
+	private void CreateShaders()
+	{
+		byte[] vertexShaderCode = File.ReadAllBytes("test.vsh.spirv");
+		_vertexShader = _logicalDevice.CreateShader(new ShaderOptions(vertexShaderCode, ShaderStage.Vertex, "main"));
+
+		byte[] pixelShaderCode = File.ReadAllBytes("test.psh.spirv");
+		_pixelShader = _logicalDevice.CreateShader(new ShaderOptions(pixelShaderCode, ShaderStage.Fragment, "main"));
 	}
 
 	private void CleanUp()
 	{
+		_vertexShader.Dispose();
+		_pixelShader.Dispose();
+		
 		_vertexBuffer?.Dispose();
 		_vertexBufferMemory?.Dispose();
 
@@ -218,6 +245,7 @@ internal unsafe class GfxTestApplication
 		CreateSwapChain();
 
 		CreateMesh();
+		CreateShaders();
 		//_deviceMemory = _logicalDevice.AllocateMemory(new DeviceMemoryOptions(1024, 1));
 	}
 
