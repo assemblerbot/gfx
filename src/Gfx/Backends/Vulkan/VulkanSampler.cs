@@ -6,7 +6,7 @@ public sealed unsafe class VulkanSampler : Sampler
 {
 	private readonly VulkanApi               _api;
 	private readonly VulkanLogicalDevice     _logicalDevice;
-	private readonly Silk.NET.Vulkan.Sampler _sampler;
+	public readonly Silk.NET.Vulkan.Sampler Sampler;
 
 	public VulkanSampler(VulkanApi api, VulkanLogicalDevice logicalDevice, SamplerOptions options)
 	{
@@ -35,7 +35,7 @@ public sealed unsafe class VulkanSampler : Sampler
 			                                UnnormalizedCoordinates = options.UnnormalizedCoordinates,
 		                                };
 		
-		fixed (Silk.NET.Vulkan.Sampler* samplerPtr = &_sampler)
+		fixed (Silk.NET.Vulkan.Sampler* samplerPtr = &Sampler)
 		{
 			Result result = _api.Vk.CreateSampler(_logicalDevice.Device, samplerInfo, null, samplerPtr);
 			if (result != Result.Success)
@@ -47,6 +47,6 @@ public sealed unsafe class VulkanSampler : Sampler
 
 	public override void Dispose()
 	{
-		_api.Vk.DestroySampler(_logicalDevice.Device, _sampler, null);
+		_api.Vk.DestroySampler(_logicalDevice.Device, Sampler, null);
 	}
 }
