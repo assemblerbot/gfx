@@ -1,14 +1,12 @@
 using System.Runtime.InteropServices;
-using Silk.NET.Core.Native;
 using Silk.NET.Vulkan;
-using Silk.NET.Vulkan.Extensions.KHR;
 
 namespace Gfx;
 
 public sealed unsafe class VulkanPhysicalDevice : PhysicalDevice
 {
 	private readonly VulkanApi                      _api;
-	public readonly Silk.NET.Vulkan.PhysicalDevice Device;
+	public readonly  Silk.NET.Vulkan.PhysicalDevice Device;
 
 	private readonly PhysicalDeviceKind _kind;
 	private readonly string             _name;
@@ -232,7 +230,7 @@ public sealed unsafe class VulkanPhysicalDevice : PhysicalDevice
 		};
 	}
 	
-	internal Format FindSupportedFormat(IEnumerable<Format> candidates, ImageTiling tiling, FormatFeatureFlags features)
+	internal Silk.NET.Vulkan.Format FindSupportedFormat(IEnumerable<Silk.NET.Vulkan.Format> candidates, ImageTiling tiling, FormatFeatureFlags features)
 	{
 		foreach (var format in candidates)
 		{
@@ -249,7 +247,7 @@ public sealed unsafe class VulkanPhysicalDevice : PhysicalDevice
 			}
 		}
 
-		return Format.Undefined;
+		return Silk.NET.Vulkan.Format.Undefined;
 	}
 
 	internal uint FindMemoryIndex(uint typeIndexFilter, MemoryPropertyFlags properties)

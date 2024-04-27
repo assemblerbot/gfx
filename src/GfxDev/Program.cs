@@ -120,7 +120,7 @@ internal unsafe class GfxTestApplication
 
 	private void CreateSwapChain()
 	{
-		_swapChain = _logicalDevice!.CreateSwapChain(new SwapChainOptions(ImageFormat.B8G8R8Srgb, true));
+		_swapChain = _logicalDevice!.CreateSwapChain(new SwapChainOptions(DeviceFormat.B8G8R8Srgb, true));
 	}
 
 	private void CreateMesh()

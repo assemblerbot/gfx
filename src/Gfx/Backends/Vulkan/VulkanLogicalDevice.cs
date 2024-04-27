@@ -63,6 +63,11 @@ public sealed unsafe class VulkanLogicalDevice : LogicalDevice
 		return new VulkanCommandBuffer(_api, this, options);
 	}
 
+	public override Sampler CreateSampler(SamplerOptions options)
+	{
+		return new VulkanSampler(_api, this, options);
+	}
+
 	public override void QueueSubmit(DeviceQueue queue, CommandBuffer commandBuffer)
 	{
 		fixed (Silk.NET.Vulkan.CommandBuffer* buffer = &((VulkanCommandBuffer) commandBuffer).CommandBuffer)

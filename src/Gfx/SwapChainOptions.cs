@@ -2,14 +2,14 @@ namespace Gfx;
 
 public struct SwapChainOptions
 {
-	public ImageFormat    FrameBufferFormat;
-	public bool           NeedDepthStencil;
-	public int            MaxFramesInFlight;
-	public SampleCount    MsaaSampleCount;
+	public DeviceFormat FrameBufferDeviceFormat;
+	public bool         NeedDepthStencil;
+	public int          MaxFramesInFlight;
+	public SampleCount  MsaaSampleCount;
 
-	public SwapChainOptions(ImageFormat frameBufferFormat, bool needDepthStencil, int maxFramesInFlight = 2, SampleCount msaaSampleCount = SampleCount.Count1)
+	public SwapChainOptions(DeviceFormat frameBufferDeviceFormat, bool needDepthStencil, int maxFramesInFlight = 2, SampleCount msaaSampleCount = SampleCount.Count1)
 	{
-		FrameBufferFormat = frameBufferFormat;
+		FrameBufferDeviceFormat = frameBufferDeviceFormat;
 		NeedDepthStencil  = needDepthStencil;
 		MaxFramesInFlight = maxFramesInFlight;
 		MsaaSampleCount   = msaaSampleCount;

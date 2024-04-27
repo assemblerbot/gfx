@@ -15,14 +15,14 @@ public sealed unsafe class VulkanSwapChain : SwapChain
 
 	internal readonly SampleCountFlags MsaaSampleCount;
 
-	private  KhrSwapchain?  _khrSwapChain;
-	private  SwapchainKHR   _swapChain;
-	private  Image[]?       _swapChainImages;
-	internal Format         SwapChainImageFormat;
-	internal Format         SwapChainDepthStencilFormat;
-	private  Extent2D       _swapChainExtent;
-	private  ImageView[]?   _swapChainImageViews;
-	private  Framebuffer[]? _swapChainFramebuffers;
+	private  KhrSwapchain?          _khrSwapChain;
+	private  SwapchainKHR           _swapChain;
+	private  Image[]?               _swapChainImages;
+	internal Silk.NET.Vulkan.Format SwapChainImageFormat;
+	internal Silk.NET.Vulkan.Format SwapChainDepthStencilFormat;
+	private  Extent2D               _swapChainExtent;
+	private  ImageView[]?           _swapChainImageViews;
+	private  Framebuffer[]?         _swapChainFramebuffers;
 	
 	private Image                        _colorImage;
 	private Silk.NET.Vulkan.DeviceMemory _colorImageMemory;
@@ -39,7 +39,7 @@ public sealed unsafe class VulkanSwapChain : SwapChain
 
 	private VulkanRenderPass? _renderPass;
 	
-	internal bool HasDepthStencil => SwapChainDepthStencilFormat != Format.Undefined;
+	internal bool HasDepthStencil => SwapChainDepthStencilFormat != Silk.NET.Vulkan.Format.Undefined;
 	
 	public VulkanSwapChain(VulkanApi api, VulkanPhysicalDevice physicalDevice, VulkanLogicalDevice logicalDevice, SwapChainOptions options)
 	{
@@ -49,7 +49,7 @@ public sealed unsafe class VulkanSwapChain : SwapChain
 		_maxFramesInFlight = options.MaxFramesInFlight;
 
 		InitMsaaSampleCount(out MsaaSampleCount, options.MsaaSampleCount);
-		InitSwapChain(options.FrameBufferFormat, options.NeedDepthStencil, ref _khrSwapChain, ref _swapChain, ref _swapChainImages, ref SwapChainImageFormat, ref SwapChainDepthStencilFormat, ref _swapChainExtent);
+		InitSwapChain(options.FrameBufferDeviceFormat, options.NeedDepthStencil, ref _khrSwapChain, ref _swapChain, ref _swapChainImages, ref SwapChainImageFormat, ref SwapChainDepthStencilFormat, ref _swapChainExtent);
 		InitImageViews(out _swapChainImageViews);
 		InitRenderPass(out _renderPass);
 		InitFrameBuffers(out _swapChainFramebuffers);
@@ -109,19 +109,19 @@ public sealed unsafe class VulkanSwapChain : SwapChain
 	}
 
 	private void InitSwapChain(
-		ImageFormat       desiredFormat,
-		bool              needDepthStencil,
-		ref KhrSwapchain? khrSwapChain,
-		ref SwapchainKHR  swapChain,
-		ref Image[]?      swapChainImages,
-		ref Format        swapChainImageFormat,
-		ref Format        swapChainDepthStencilFormat,
-		ref Extent2D      swapChainExtent
+		DeviceFormat                     desiredDeviceFormat,
+		bool                       needDepthStencil,
+		ref KhrSwapchain?          khrSwapChain,
+		ref SwapchainKHR           swapChain,
+		ref Image[]?               swapChainImages,
+		ref Silk.NET.Vulkan.Format swapChainImageFormat,
+		ref Silk.NET.Vulkan.Format swapChainDepthStencilFormat,
+		ref Extent2D               swapChainExtent
 	)
 	{
 		VulkanSwapChainSupportDetails swapChainSupport = _physicalDevice.SwapChainSupportDetails!;
 
-		var surfaceFormat = ChooseSwapSurfaceFormat(swapChainSupport.Formats, desiredFormat.ToVulkan());
+		var surfaceFormat = ChooseSwapSurfaceFormat(swapChainSupport.Formats, desiredDeviceFormat.ToVulkan());
 		var presentMode   = ChoosePresentMode(swapChainSupport.PresentModes);
 		var extent        = ChooseSwapExtent(swapChainSupport.Capabilities);
 
@@ -192,8 +192,8 @@ public sealed unsafe class VulkanSwapChain : SwapChain
 
 		swapChainDepthStencilFormat =
 			needDepthStencil
-				? _physicalDevice.FindSupportedFormat(new[] {Format.D32Sfloat, Format.D32SfloatS8Uint, Format.D24UnormS8Uint}, ImageTiling.Optimal, FormatFeatureFlags.DepthStencilAttachmentBit)
-				: Format.Undefined;
+				? _physicalDevice.FindSupportedFormat(new[] {Silk.NET.Vulkan.Format.D32Sfloat, Silk.NET.Vulkan.Format.D32SfloatS8Uint, Silk.NET.Vulkan.Format.D24UnormS8Uint}, ImageTiling.Optimal, FormatFeatureFlags.DepthStencilAttachmentBit)
+				: Silk.NET.Vulkan.Format.Undefined;
 	}
 
 	private void InitImageViews(out ImageView[]? imageViews)
@@ -234,7 +234,7 @@ public sealed unsafe class VulkanSwapChain : SwapChain
 
 	private void InitColorResources(ref Image colorImage, ref Silk.NET.Vulkan.DeviceMemory colorImageMemory, ref ImageView colorImageView)
 	{
-		Format colorFormat = SwapChainImageFormat;
+		Silk.NET.Vulkan.Format colorFormat = SwapChainImageFormat;
 	
 		CreateImage(_swapChainExtent.Width, _swapChainExtent.Height, 1, MsaaSampleCount, colorFormat, ImageTiling.Optimal, ImageUsageFlags.TransientAttachmentBit | ImageUsageFlags.ColorAttachmentBit, MemoryPropertyFlags.DeviceLocalBit, ref colorImage, ref colorImageMemory);
 		colorImageView = CreateImageView(colorImage, colorFormat, ImageAspectFlags.ColorBit, 1);
@@ -242,7 +242,7 @@ public sealed unsafe class VulkanSwapChain : SwapChain
 	
 	private void InitDepthResources(ref Image depthImage, ref Silk.NET.Vulkan.DeviceMemory depthImageMemory, ref ImageView depthImageView)
 	{
-		if (SwapChainDepthStencilFormat == Format.Undefined)
+		if (SwapChainDepthStencilFormat == Silk.NET.Vulkan.Format.Undefined)
 		{
 			depthImage       = default;
 			depthImageMemory = default;
@@ -250,7 +250,7 @@ public sealed unsafe class VulkanSwapChain : SwapChain
 			return;
 		}
 
-		Format depthFormat = SwapChainDepthStencilFormat;
+		Silk.NET.Vulkan.Format depthFormat = SwapChainDepthStencilFormat;
 	
 		CreateImage(_swapChainExtent.Width, _swapChainExtent.Height, 1, MsaaSampleCount, depthFormat, ImageTiling.Optimal, ImageUsageFlags.DepthStencilAttachmentBit, MemoryPropertyFlags.DeviceLocalBit, ref depthImage, ref depthImageMemory);
 		depthImageView = CreateImageView(depthImage, depthFormat, ImageAspectFlags.DepthBit, 1);
@@ -297,7 +297,7 @@ public sealed unsafe class VulkanSwapChain : SwapChain
 	#endregion
 	
 	#region Initialization helpers
-	private SurfaceFormatKHR ChooseSwapSurfaceFormat(IReadOnlyList<SurfaceFormatKHR> availableFormats, Format desiredFormat)
+	private SurfaceFormatKHR ChooseSwapSurfaceFormat(IReadOnlyList<SurfaceFormatKHR> availableFormats, Silk.NET.Vulkan.Format desiredFormat)
 	{
 		foreach (var availableFormat in availableFormats)
 		{
@@ -344,7 +344,7 @@ public sealed unsafe class VulkanSwapChain : SwapChain
 		return actualExtent;
 	}
 	
-	private ImageView CreateImageView(Image image, Format format, ImageAspectFlags aspectFlags, uint mipLevels)
+	private ImageView CreateImageView(Image image, Silk.NET.Vulkan.Format format, ImageAspectFlags aspectFlags, uint mipLevels)
 	{
 		ImageViewCreateInfo createInfo = new()
 		                                 {
@@ -377,7 +377,7 @@ public sealed unsafe class VulkanSwapChain : SwapChain
 		return imageView;
 	}
 	
-	private void CreateImage(uint width, uint height, uint mipLevels, SampleCountFlags numSamples, Format format, ImageTiling tiling, ImageUsageFlags usage, MemoryPropertyFlags properties, ref Image image, ref Silk.NET.Vulkan.DeviceMemory imageMemory)
+	private void CreateImage(uint width, uint height, uint mipLevels, SampleCountFlags numSamples, Silk.NET.Vulkan.Format format, ImageTiling tiling, ImageUsageFlags usage, MemoryPropertyFlags properties, ref Image image, ref Silk.NET.Vulkan.DeviceMemory imageMemory)
 	{
 		ImageCreateInfo imageInfo = new()
 		                            {

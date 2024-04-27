@@ -1,6 +1,6 @@
 namespace Gfx;
 
-public enum ImageFormat
+public enum DeviceFormat
 { 
     Undefined = 0,
     R4G4UnormPack8 = 1,
