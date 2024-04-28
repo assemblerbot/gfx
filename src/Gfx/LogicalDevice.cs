@@ -15,6 +15,7 @@ public abstract class LogicalDevice : IDisposable
 
 	public abstract Sampler             CreateSampler(SamplerOptions                         options);
 	public abstract DescriptorSetLayout CreateDescriptorSetLayout(DescriptorSetLayoutOptions options);
+	public abstract PipelineLayout      CreatePipelineLayout(DescriptorSetLayout             layout);
 	
 	public abstract void QueueSubmit(DeviceQueue   queue, CommandBuffer commandBuffer);
 	public abstract void QueueSubmit(DeviceQueue   queue, CommandBuffer commandBuffer, SwapChain swapChain, int fenceIndex);

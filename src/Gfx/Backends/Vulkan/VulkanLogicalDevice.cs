@@ -73,6 +73,11 @@ public sealed unsafe class VulkanLogicalDevice : LogicalDevice
 		return new VulkanDescriptorSetLayout(_api, this, options);
 	}
 
+	public override PipelineLayout CreatePipelineLayout(DescriptorSetLayout layout)
+	{
+		return new VulkanPipelineLayout(_api, this, layout);
+	}
+
 	public override void QueueSubmit(DeviceQueue queue, CommandBuffer commandBuffer)
 	{
 		fixed (Silk.NET.Vulkan.CommandBuffer* buffer = &((VulkanCommandBuffer) commandBuffer).CommandBuffer)

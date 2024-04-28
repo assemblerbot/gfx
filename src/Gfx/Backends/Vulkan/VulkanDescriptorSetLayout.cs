@@ -7,7 +7,7 @@ public sealed unsafe class VulkanDescriptorSetLayout : DescriptorSetLayout
 {
 	private readonly VulkanApi                           _api;
 	private readonly VulkanLogicalDevice                 _logicalDevice;
-	private readonly Silk.NET.Vulkan.DescriptorSetLayout _layout;
+	public readonly Silk.NET.Vulkan.DescriptorSetLayout Layout;
 	
 	public VulkanDescriptorSetLayout(VulkanApi api, VulkanLogicalDevice logicalDevice, DescriptorSetLayoutOptions options)
 	{
@@ -44,7 +44,7 @@ public sealed unsafe class VulkanDescriptorSetLayout : DescriptorSetLayout
 
 		Result result = Result.Success;
 		fixed (Silk.NET.Vulkan.DescriptorSetLayoutBinding* bindingsPtr = bindings)
-		fixed (Silk.NET.Vulkan.DescriptorSetLayout* descriptorSetLayoutPtr = &_layout)
+		fixed (Silk.NET.Vulkan.DescriptorSetLayout* descriptorSetLayoutPtr = &Layout)
 		{
 			Silk.NET.Vulkan.DescriptorSetLayoutCreateInfo info = new()
 			                                                     {
@@ -69,6 +69,6 @@ public sealed unsafe class VulkanDescriptorSetLayout : DescriptorSetLayout
 
 	public override void Dispose()
 	{
-		_api.Vk.DestroyDescriptorSetLayout(_logicalDevice.Device, _layout, null);
+		_api.Vk.DestroyDescriptorSetLayout(_logicalDevice.Device, Layout, null);
 	}
 }

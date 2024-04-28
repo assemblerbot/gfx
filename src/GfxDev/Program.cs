@@ -10,6 +10,8 @@ internal unsafe class GfxTestApplication
 {
 	private struct Vertex
 	{
+		public static uint Size => 3 * sizeof(float) + 4 * sizeof(float);
+		
 		public Vector3 Position;
 		public Vector4 Color;
 	}
@@ -25,10 +27,12 @@ internal unsafe class GfxTestApplication
 	private SwapChain?      _swapChain;
 
 	// mesh
-	private DeviceBuffer? _vertexBuffer;
-	private DeviceMemory? _vertexBufferMemory;
-	private DeviceBuffer? _indexBuffer;
-	private DeviceMemory? _indexBufferMemory;
+	private DeviceBuffer?                   _vertexBuffer;
+	private DeviceMemory?                   _vertexBufferMemory;
+	private DeviceBuffer?                   _indexBuffer;
+	private DeviceMemory?                   _indexBufferMemory;
+	private VertexInputBindingDescription   _vertexInputBindingDescription;
+	private VertexInputAttributeDescription[] _vertexInputAttributeDescriptions;
 	
 	// shaders
 	private Shader? _vertexShader;
@@ -203,6 +207,24 @@ internal unsafe class GfxTestApplication
 				_logicalDevice.QueueWaitIdle(DeviceQueue.Graphics);
 			}
 		}
+		
+		// vertex descriptions
+		_vertexInputBindingDescription = new VertexInputBindingDescription(0, Vertex.Size, VertexInputRate.Vertex);
+		_vertexInputAttributeDescriptions = new[]
+		                                    {
+			                                    new VertexInputAttributeDescription(
+				                                    location: 0,
+				                                    binding: 0,
+				                                    deviceFormat: DeviceFormat.R32G32B32Sfloat,
+				                                    offset: 0
+			                                    ),
+			                                    new VertexInputAttributeDescription(
+				                                    location: 1,
+				                                    binding: 0,
+				                                    deviceFormat: DeviceFormat.R32G32B32A32Sfloat,
+				                                    offset: 3*sizeof(float)
+			                                    ),
+		                                    };
 	}
 
 	private void CreateShaders()
