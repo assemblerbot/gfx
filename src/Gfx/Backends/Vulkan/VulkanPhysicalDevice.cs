@@ -1,12 +1,13 @@
 using System.Runtime.InteropServices;
 using Silk.NET.Vulkan;
+using VkPhysicalDevice = Silk.NET.Vulkan.PhysicalDevice;
 
 namespace Gfx;
 
 public sealed unsafe class VulkanPhysicalDevice : PhysicalDevice
 {
 	private readonly VulkanApi                      _api;
-	public readonly  Silk.NET.Vulkan.PhysicalDevice Device;
+	public readonly  VkPhysicalDevice Device;
 
 	private readonly PhysicalDeviceKind _kind;
 	private readonly string             _name;
@@ -28,14 +29,14 @@ public sealed unsafe class VulkanPhysicalDevice : PhysicalDevice
 		GraphicsQueueFamily.HasValue                          &&
 		PresentQueueFamily.HasValue                           &&
 		GraphicsExtensionsSupported                           &&
-		(SwapChainSupportDetails?.Formats.Any()      ?? false) &&
-		(SwapChainSupportDetails?.PresentModes.Any() ?? false);
+		SwapChainSupportDetails?.Formats.Length != 0 &&
+		SwapChainSupportDetails?.PresentModes.Length != 0;
 
 	public override bool SupportsCompute => ComputeQueueFamily.HasValue;
 	
 	internal VulkanPhysicalDevice(
 		VulkanApi                      api,
-		Silk.NET.Vulkan.PhysicalDevice device
+		VkPhysicalDevice device
 	)
 	{
 		_api            = api;
