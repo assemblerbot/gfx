@@ -1,5 +1,8 @@
 using System.Runtime.InteropServices;
 using Silk.NET.Vulkan;
+using VkDescriptorSetLayout = Silk.NET.Vulkan.DescriptorSetLayout;
+using VkDescriptorSetLayoutBinding = Silk.NET.Vulkan.DescriptorSetLayoutBinding;
+using VkSampler = Silk.NET.Vulkan.Sampler;
 
 namespace Gfx;
 
@@ -7,7 +10,7 @@ public sealed unsafe class VulkanDescriptorSetLayout : DescriptorSetLayout
 {
 	private readonly VulkanApi                           _api;
 	private readonly VulkanLogicalDevice                 _logicalDevice;
-	public readonly Silk.NET.Vulkan.DescriptorSetLayout Layout;
+	public readonly VkDescriptorSetLayout Layout;
 	
 	public VulkanDescriptorSetLayout(VulkanApi api, VulkanLogicalDevice logicalDevice, DescriptorSetLayoutOptions options)
 	{
@@ -16,7 +19,7 @@ public sealed unsafe class VulkanDescriptorSetLayout : DescriptorSetLayout
 		
 		List<IntPtr> allocatedPointers = new();
 		
-		Silk.NET.Vulkan.DescriptorSetLayoutBinding[] bindings = new Silk.NET.Vulkan.DescriptorSetLayoutBinding[options.Bindings.Length];
+		VkDescriptorSetLayoutBinding[] bindings = new VkDescriptorSetLayoutBinding[options.Bindings.Length];
 		for (int i = 0; i < options.Bindings.Length; ++i)
 		{
 			IntPtr samplersPtr = default;
@@ -24,27 +27,27 @@ public sealed unsafe class VulkanDescriptorSetLayout : DescriptorSetLayout
 			int samplersCount = options.Bindings[i].Samplers.Length;
 			if (samplersCount > 0)
 			{
-				samplersPtr = Marshal.AllocHGlobal(samplersCount * sizeof(Silk.NET.Vulkan.Sampler));
+				samplersPtr = Marshal.AllocHGlobal(samplersCount * sizeof(VkSampler));
 				allocatedPointers.Add(samplersPtr);
 				
 				for (int j = 0; j < samplersCount; ++j)
 				{
-					((Silk.NET.Vulkan.Sampler*) samplersPtr.ToPointer())[j] = ((VulkanSampler) options.Bindings[i].Samplers[j]).Sampler;
+					((VkSampler*) samplersPtr.ToPointer())[j] = ((VulkanSampler) options.Bindings[i].Samplers[j]).Sampler;
 				}
 			}
 
-			bindings[i] = new Silk.NET.Vulkan.DescriptorSetLayoutBinding(
+			bindings[i] = new VkDescriptorSetLayoutBinding(
 				options.Bindings[i].Binding,
 				options.Bindings[i].DescriptorType.ToVulkanDescriptorType(),
 				options.Bindings[i].DescriptorCount,
 				options.Bindings[i].ShaderStage.ToVulkanShaderStageFlags(),
-				(Silk.NET.Vulkan.Sampler*) samplersPtr.ToPointer()
+				(VkSampler*) samplersPtr.ToPointer()
 			);
 		}
 
 		Result result = Result.Success;
-		fixed (Silk.NET.Vulkan.DescriptorSetLayoutBinding* bindingsPtr = bindings)
-		fixed (Silk.NET.Vulkan.DescriptorSetLayout* descriptorSetLayoutPtr = &Layout)
+		fixed (VkDescriptorSetLayoutBinding* bindingsPtr = bindings)
+		fixed (VkDescriptorSetLayout* descriptorSetLayoutPtr = &Layout)
 		{
 			Silk.NET.Vulkan.DescriptorSetLayoutCreateInfo info = new()
 			                                                     {
