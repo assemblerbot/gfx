@@ -4,9 +4,9 @@ public struct PipelineViewportStateOptions
 {
 	public uint       Flags;
 	public Viewport[] Viewports;
-	public Scrissor[] Scissors;
+	public Scissor[] Scissors;
 
-	public PipelineViewportStateOptions(uint flags, Viewport[] viewports, Scrissor[] scissors)
+	public PipelineViewportStateOptions(uint flags, Viewport[] viewports, Scissor[] scissors)
 	{
 		Flags     = flags;
 		Viewports = viewports;
