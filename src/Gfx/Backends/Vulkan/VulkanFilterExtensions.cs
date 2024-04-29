@@ -1,14 +1,16 @@
+using VkFilter = Silk.NET.Vulkan.Filter;
+
 namespace Gfx;
 
 public static class VulkanFilterExtensions
 {
-	public static Silk.NET.Vulkan.Filter ToVulkanFilter(this Filter filter)
+	public static VkFilter ToVulkanFilter(this Filter filter)
 	{
 		return filter switch
 		{
-			Filter.Nearest => Silk.NET.Vulkan.Filter.Nearest,
-			Filter.Linear => Silk.NET.Vulkan.Filter.Linear,
-			Filter.Cubic => Silk.NET.Vulkan.Filter.CubicImg,
+			Filter.Nearest => VkFilter.Nearest,
+			Filter.Linear => VkFilter.Linear,
+			Filter.Cubic => VkFilter.CubicImg,
 		};
 	}
 }

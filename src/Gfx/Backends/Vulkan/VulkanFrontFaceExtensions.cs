@@ -1,13 +1,15 @@
+using VkFrontFace = Silk.NET.Vulkan.FrontFace;
+
 namespace Gfx;
 
 public static class VulkanFrontFaceExtensions
 {
-	public static Silk.NET.Vulkan.FrontFace ToVulkanFrontFace(this FrontFace frontFace)
+	public static VkFrontFace ToVulkanFrontFace(this FrontFace frontFace)
 	{
 		return frontFace switch
 		{
-			FrontFace.CounterClockwise => Silk.NET.Vulkan.FrontFace.CounterClockwise,
-			FrontFace.Clockwise => Silk.NET.Vulkan.FrontFace.Clockwise,
+			FrontFace.CounterClockwise => VkFrontFace.CounterClockwise,
+			FrontFace.Clockwise => VkFrontFace.Clockwise,
 		};
 	}
 }

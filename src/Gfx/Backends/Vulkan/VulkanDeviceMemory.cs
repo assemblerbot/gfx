@@ -1,4 +1,5 @@
 using Silk.NET.Vulkan;
+using VkDevideMemory = Silk.NET.Vulkan.DeviceMemory;
 
 namespace Gfx;
 
@@ -7,7 +8,7 @@ public sealed unsafe class VulkanDeviceMemory : DeviceMemory
 	private readonly  VulkanApi                    _api;
 	private readonly  VulkanLogicalDevice          _logicalDevice;
 	private readonly  ulong                        _size;
-	internal readonly Silk.NET.Vulkan.DeviceMemory Memory;
+	internal readonly VkDevideMemory Memory;
 	
 	internal VulkanDeviceMemory(VulkanApi api, VulkanLogicalDevice logicalDevice, DeviceMemoryOptions options)
 	{
@@ -22,7 +23,7 @@ public sealed unsafe class VulkanDeviceMemory : DeviceMemory
 			                                  MemoryTypeIndex = options.MemoryTypeIndex,
 		                                  };
 		
-		fixed (Silk.NET.Vulkan.DeviceMemory* bufferMemoryPtr = &Memory)
+		fixed (VkDevideMemory* bufferMemoryPtr = &Memory)
 		{
 			if (_api.Vk.AllocateMemory(_logicalDevice.Device, allocateInfo, null, bufferMemoryPtr) != Result.Success)
 			{
