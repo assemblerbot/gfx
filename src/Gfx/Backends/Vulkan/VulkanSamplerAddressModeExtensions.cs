@@ -1,16 +1,18 @@
+using VkSamplerAddressMode = Silk.NET.Vulkan.SamplerAddressMode;
+
 namespace Gfx;
 
 public static class VulkanSamplerAddressModeExtensions
 {
-	public static Silk.NET.Vulkan.SamplerAddressMode ToVulkanSamplerAddressMode(this SamplerAddressMode mode)
+	public static VkSamplerAddressMode ToVulkanSamplerAddressMode(this SamplerAddressMode mode)
 	{
 		return mode switch
 		{
-			SamplerAddressMode.Repeat            => Silk.NET.Vulkan.SamplerAddressMode.Repeat,
-			SamplerAddressMode.MirroredRepeat    => Silk.NET.Vulkan.SamplerAddressMode.MirroredRepeat,
-			SamplerAddressMode.ClampToEdge       => Silk.NET.Vulkan.SamplerAddressMode.ClampToEdge,
-			SamplerAddressMode.ClampToBorder     => Silk.NET.Vulkan.SamplerAddressMode.ClampToBorder,
-			SamplerAddressMode.MirrorClampToEdge => Silk.NET.Vulkan.SamplerAddressMode.MirrorClampToEdge,
+			SamplerAddressMode.Repeat            => VkSamplerAddressMode.Repeat,
+			SamplerAddressMode.MirroredRepeat    => VkSamplerAddressMode.MirroredRepeat,
+			SamplerAddressMode.ClampToEdge       => VkSamplerAddressMode.ClampToEdge,
+			SamplerAddressMode.ClampToBorder     => VkSamplerAddressMode.ClampToBorder,
+			SamplerAddressMode.MirrorClampToEdge => VkSamplerAddressMode.MirrorClampToEdge,
 		};
 	}
 }
