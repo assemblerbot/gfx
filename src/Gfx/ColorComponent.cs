@@ -1,5 +1,6 @@
 namespace Gfx;
 
+[Flags]
 public enum ColorComponent
 {
 	None = 0,
