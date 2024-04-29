@@ -38,7 +38,7 @@ public sealed unsafe class VulkanDescriptorSetLayout : DescriptorSetLayout
 
 			bindings[i] = new VkDescriptorSetLayoutBinding(
 				options.Bindings[i].Binding,
-				options.Bindings[i].DescriptorType.ToVulkanDescriptorType(),
+				options.Bindings[i].DescriptorKind.ToVulkanDescriptorType(),
 				options.Bindings[i].DescriptorCount,
 				options.Bindings[i].ShaderStage.ToVulkanShaderStageFlags(),
 				(VkSampler*) samplersPtr.ToPointer()
