@@ -1,19 +1,21 @@
+using VkPipelineShaderStageCreateFlags = Silk.NET.Vulkan.PipelineShaderStageCreateFlags;
+
 namespace Gfx;
 
 public static class VulkanPipelineShaderStageCreateFlagsExtensions
 {
-	public static Silk.NET.Vulkan.PipelineShaderStageCreateFlags ToVulkanPipelineShaderStageCreateFlags(this PipelineShaderStageCreateFlags flags)
+	public static VkPipelineShaderStageCreateFlags ToVulkanPipelineShaderStageCreateFlags(this PipelineShaderStageCreateFlags flags)
 	{
-		Silk.NET.Vulkan.PipelineShaderStageCreateFlags result = Silk.NET.Vulkan.PipelineShaderStageCreateFlags.None;
+		VkPipelineShaderStageCreateFlags result = VkPipelineShaderStageCreateFlags.None;
 
 		if ((flags & PipelineShaderStageCreateFlags.RequireFullSubgroupsBit) != 0)
 		{
-			result |= Silk.NET.Vulkan.PipelineShaderStageCreateFlags.RequireFullSubgroupsBit;
+			result |= VkPipelineShaderStageCreateFlags.RequireFullSubgroupsBit;
 		}
 
 		if ((flags & PipelineShaderStageCreateFlags.AllowVaryingSubgroupSizeBit) != 0)
 		{
-			result |= Silk.NET.Vulkan.PipelineShaderStageCreateFlags.AllowVaryingSubgroupSizeBit;
+			result |= VkPipelineShaderStageCreateFlags.AllowVaryingSubgroupSizeBit;
 		}
 
 		return result;

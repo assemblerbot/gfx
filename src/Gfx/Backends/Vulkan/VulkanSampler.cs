@@ -1,4 +1,5 @@
 using Silk.NET.Vulkan;
+using VkSampler = Silk.NET.Vulkan.Sampler;
 
 namespace Gfx;
 
@@ -6,7 +7,7 @@ public sealed unsafe class VulkanSampler : Sampler
 {
 	private readonly VulkanApi               _api;
 	private readonly VulkanLogicalDevice     _logicalDevice;
-	public readonly Silk.NET.Vulkan.Sampler Sampler;
+	public readonly VkSampler Sampler;
 
 	public VulkanSampler(VulkanApi api, VulkanLogicalDevice logicalDevice, SamplerOptions options)
 	{
@@ -35,7 +36,7 @@ public sealed unsafe class VulkanSampler : Sampler
 			                                UnnormalizedCoordinates = options.UnnormalizedCoordinates,
 		                                };
 		
-		fixed (Silk.NET.Vulkan.Sampler* samplerPtr = &Sampler)
+		fixed (VkSampler* samplerPtr = &Sampler)
 		{
 			Result result = _api.Vk.CreateSampler(_logicalDevice.Device, samplerInfo, null, samplerPtr);
 			if (result != Result.Success)

@@ -1,199 +1,201 @@
+using VkPipelineCreateFlags = Silk.NET.Vulkan.PipelineCreateFlags;
+
 namespace Gfx;
 
 public static class VulkanPipelineCreateFlagsExtensions
 {
-	public static Silk.NET.Vulkan.PipelineCreateFlags ToVulkanPipelineCreateFlags(this PipelineCreateFlags flags)
+	public static VkPipelineCreateFlags ToVulkanPipelineCreateFlags(this PipelineCreateFlags flags)
 	{
-		Silk.NET.Vulkan.PipelineCreateFlags result = Silk.NET.Vulkan.PipelineCreateFlags.None;
+		VkPipelineCreateFlags result = VkPipelineCreateFlags.None;
 
 		if ((flags & PipelineCreateFlags.CreateDisableOptimizationBit) != 0)
 		{
-			result |= Silk.NET.Vulkan.PipelineCreateFlags.CreateDisableOptimizationBit;
+			result |= VkPipelineCreateFlags.CreateDisableOptimizationBit;
 		}
 
 		if ((flags & PipelineCreateFlags.CreateAllowDerivativesBit) != 0)
 		{
-			result |= Silk.NET.Vulkan.PipelineCreateFlags.CreateAllowDerivativesBit;
+			result |= VkPipelineCreateFlags.CreateAllowDerivativesBit;
 		}
 
 		if ((flags & PipelineCreateFlags.CreateDerivativeBit) != 0)
 		{
-			result |= Silk.NET.Vulkan.PipelineCreateFlags.CreateDerivativeBit;
+			result |= VkPipelineCreateFlags.CreateDerivativeBit;
 		}
 
 		if ((flags & PipelineCreateFlags.CreateRenderingFragmentShadingRateAttachmentBitKhr) != 0)
 		{
-			result |= Silk.NET.Vulkan.PipelineCreateFlags.CreateRenderingFragmentShadingRateAttachmentBitKhr;
+			result |= VkPipelineCreateFlags.CreateRenderingFragmentShadingRateAttachmentBitKhr;
 		}
 
 		if ((flags & PipelineCreateFlags.RasterizationStateCreateFragmentShadingRateAttachmentBitKhr) != 0)
 		{
-			result |= Silk.NET.Vulkan.PipelineCreateFlags.RasterizationStateCreateFragmentShadingRateAttachmentBitKhr;
+			result |= VkPipelineCreateFlags.RasterizationStateCreateFragmentShadingRateAttachmentBitKhr;
 		}
 
 		if ((flags & PipelineCreateFlags.CreateRenderingFragmentDensityMapAttachmentBitExt) != 0)
 		{
-			result |= Silk.NET.Vulkan.PipelineCreateFlags.CreateRenderingFragmentDensityMapAttachmentBitExt;
+			result |= VkPipelineCreateFlags.CreateRenderingFragmentDensityMapAttachmentBitExt;
 		}
 
 		if ((flags & PipelineCreateFlags.RasterizationStateCreateFragmentDensityMapAttachmentBitExt) != 0)
 		{
-			result |= Silk.NET.Vulkan.PipelineCreateFlags.RasterizationStateCreateFragmentDensityMapAttachmentBitExt;
+			result |= VkPipelineCreateFlags.RasterizationStateCreateFragmentDensityMapAttachmentBitExt;
 		}
 
 		if ((flags & PipelineCreateFlags.CreateViewIndexFromDeviceIndexBitKhr) != 0)
 		{
-			result |= Silk.NET.Vulkan.PipelineCreateFlags.CreateViewIndexFromDeviceIndexBitKhr;
+			result |= VkPipelineCreateFlags.CreateViewIndexFromDeviceIndexBitKhr;
 		}
 
 		if ((flags & PipelineCreateFlags.CreateDispatchBaseKhr) != 0)
 		{
-			result |= Silk.NET.Vulkan.PipelineCreateFlags.CreateDispatchBaseKhr;
+			result |= VkPipelineCreateFlags.CreateDispatchBaseKhr;
 		}
 
 		if ((flags & PipelineCreateFlags.CreateRayTracingNoNullAnyHitShadersBitKhr) != 0)
 		{
-			result |= Silk.NET.Vulkan.PipelineCreateFlags.CreateRayTracingNoNullAnyHitShadersBitKhr;
+			result |= VkPipelineCreateFlags.CreateRayTracingNoNullAnyHitShadersBitKhr;
 		}
 
 		if ((flags & PipelineCreateFlags.CreateRayTracingNoNullClosestHitShadersBitKhr) != 0)
 		{
-			result |= Silk.NET.Vulkan.PipelineCreateFlags.CreateRayTracingNoNullClosestHitShadersBitKhr;
+			result |= VkPipelineCreateFlags.CreateRayTracingNoNullClosestHitShadersBitKhr;
 		}
 
 		if ((flags & PipelineCreateFlags.CreateRayTracingNoNullMissShadersBitKhr) != 0)
 		{
-			result |= Silk.NET.Vulkan.PipelineCreateFlags.CreateRayTracingNoNullMissShadersBitKhr;
+			result |= VkPipelineCreateFlags.CreateRayTracingNoNullMissShadersBitKhr;
 		}
 
 		if ((flags & PipelineCreateFlags.CreateRayTracingNoNullIntersectionShadersBitKhr) != 0)
 		{
-			result |= Silk.NET.Vulkan.PipelineCreateFlags.CreateRayTracingNoNullIntersectionShadersBitKhr;
+			result |= VkPipelineCreateFlags.CreateRayTracingNoNullIntersectionShadersBitKhr;
 		}
 
 		if ((flags & PipelineCreateFlags.CreateRayTracingSkipTrianglesBitKhr) != 0)
 		{
-			result |= Silk.NET.Vulkan.PipelineCreateFlags.CreateRayTracingSkipTrianglesBitKhr;
+			result |= VkPipelineCreateFlags.CreateRayTracingSkipTrianglesBitKhr;
 		}
 
 		if ((flags & PipelineCreateFlags.CreateRayTracingSkipAabbsBitKhr) != 0)
 		{
-			result |= Silk.NET.Vulkan.PipelineCreateFlags.CreateRayTracingSkipAabbsBitKhr;
+			result |= VkPipelineCreateFlags.CreateRayTracingSkipAabbsBitKhr;
 		}
 
 		if ((flags & PipelineCreateFlags.CreateRayTracingShaderGroupHandleCaptureReplayBitKhr) != 0)
 		{
-			result |= Silk.NET.Vulkan.PipelineCreateFlags.CreateRayTracingShaderGroupHandleCaptureReplayBitKhr;
+			result |= VkPipelineCreateFlags.CreateRayTracingShaderGroupHandleCaptureReplayBitKhr;
 		}
 
 		if ((flags & PipelineCreateFlags.CreateDeferCompileBitNV) != 0)
 		{
-			result |= Silk.NET.Vulkan.PipelineCreateFlags.CreateDeferCompileBitNV;
+			result |= VkPipelineCreateFlags.CreateDeferCompileBitNV;
 		}
 
 		if ((flags & PipelineCreateFlags.CreateCaptureStatisticsBitKhr) != 0)
 		{
-			result |= Silk.NET.Vulkan.PipelineCreateFlags.CreateCaptureStatisticsBitKhr;
+			result |= VkPipelineCreateFlags.CreateCaptureStatisticsBitKhr;
 		}
 
 		if ((flags & PipelineCreateFlags.CreateCaptureInternalRepresentationsBitKhr) != 0)
 		{
-			result |= Silk.NET.Vulkan.PipelineCreateFlags.CreateCaptureInternalRepresentationsBitKhr;
+			result |= VkPipelineCreateFlags.CreateCaptureInternalRepresentationsBitKhr;
 		}
 
 		if ((flags & PipelineCreateFlags.CreateIndirectBindableBitNV) != 0)
 		{
-			result |= Silk.NET.Vulkan.PipelineCreateFlags.CreateIndirectBindableBitNV;
+			result |= VkPipelineCreateFlags.CreateIndirectBindableBitNV;
 		}
 
 		if ((flags & PipelineCreateFlags.CreateLibraryBitKhr) != 0)
 		{
-			result |= Silk.NET.Vulkan.PipelineCreateFlags.CreateLibraryBitKhr;
+			result |= VkPipelineCreateFlags.CreateLibraryBitKhr;
 		}
 
 		if ((flags & PipelineCreateFlags.CreateFailOnPipelineCompileRequiredBitExt) != 0)
 		{
-			result |= Silk.NET.Vulkan.PipelineCreateFlags.CreateFailOnPipelineCompileRequiredBitExt;
+			result |= VkPipelineCreateFlags.CreateFailOnPipelineCompileRequiredBitExt;
 		}
 
 		if ((flags & PipelineCreateFlags.CreateEarlyReturnOnFailureBitExt) != 0)
 		{
-			result |= Silk.NET.Vulkan.PipelineCreateFlags.CreateEarlyReturnOnFailureBitExt;
+			result |= VkPipelineCreateFlags.CreateEarlyReturnOnFailureBitExt;
 		}
 
 		if ((flags & PipelineCreateFlags.CreateDescriptorBufferBitExt) != 0)
 		{
-			result |= Silk.NET.Vulkan.PipelineCreateFlags.CreateDescriptorBufferBitExt;
+			result |= VkPipelineCreateFlags.CreateDescriptorBufferBitExt;
 		}
 
 		if ((flags & PipelineCreateFlags.CreateRetainLinkTimeOptimizationInfoBitExt) != 0)
 		{
-			result |= Silk.NET.Vulkan.PipelineCreateFlags.CreateRetainLinkTimeOptimizationInfoBitExt;
+			result |= VkPipelineCreateFlags.CreateRetainLinkTimeOptimizationInfoBitExt;
 		}
 
 		if ((flags & PipelineCreateFlags.CreateLinkTimeOptimizationBitExt) != 0)
 		{
-			result |= Silk.NET.Vulkan.PipelineCreateFlags.CreateLinkTimeOptimizationBitExt;
+			result |= VkPipelineCreateFlags.CreateLinkTimeOptimizationBitExt;
 		}
 
 		if ((flags & PipelineCreateFlags.CreateRayTracingAllowMotionBitNV) != 0)
 		{
-			result |= Silk.NET.Vulkan.PipelineCreateFlags.CreateRayTracingAllowMotionBitNV;
+			result |= VkPipelineCreateFlags.CreateRayTracingAllowMotionBitNV;
 		}
 
 		if ((flags & PipelineCreateFlags.CreateColorAttachmentFeedbackLoopBitExt) != 0)
 		{
-			result |= Silk.NET.Vulkan.PipelineCreateFlags.CreateColorAttachmentFeedbackLoopBitExt;
+			result |= VkPipelineCreateFlags.CreateColorAttachmentFeedbackLoopBitExt;
 		}
 
 		if ((flags & PipelineCreateFlags.CreateDepthStencilAttachmentFeedbackLoopBitExt) != 0)
 		{
-			result |= Silk.NET.Vulkan.PipelineCreateFlags.CreateDepthStencilAttachmentFeedbackLoopBitExt;
+			result |= VkPipelineCreateFlags.CreateDepthStencilAttachmentFeedbackLoopBitExt;
 		}
 
 		if ((flags & PipelineCreateFlags.CreateRayTracingOpacityMicromapBitExt) != 0)
 		{
-			result |= Silk.NET.Vulkan.PipelineCreateFlags.CreateRayTracingOpacityMicromapBitExt;
+			result |= VkPipelineCreateFlags.CreateRayTracingOpacityMicromapBitExt;
 		}
 
 		if ((flags & PipelineCreateFlags.CreateRayTracingDisplacementMicromapBitNV) != 0)
 		{
-			result |= Silk.NET.Vulkan.PipelineCreateFlags.CreateRayTracingDisplacementMicromapBitNV;
+			result |= VkPipelineCreateFlags.CreateRayTracingDisplacementMicromapBitNV;
 		}
 
 		if ((flags & PipelineCreateFlags.CreateNoProtectedAccessBitExt) != 0)
 		{
-			result |= Silk.NET.Vulkan.PipelineCreateFlags.CreateNoProtectedAccessBitExt;
+			result |= VkPipelineCreateFlags.CreateNoProtectedAccessBitExt;
 		}
 
 		if ((flags & PipelineCreateFlags.CreateProtectedAccessOnlyBitExt) != 0)
 		{
-			result |= Silk.NET.Vulkan.PipelineCreateFlags.CreateProtectedAccessOnlyBitExt;
+			result |= VkPipelineCreateFlags.CreateProtectedAccessOnlyBitExt;
 		}
 
 		if ((flags & PipelineCreateFlags.CreateViewIndexFromDeviceIndexBit) != 0)
 		{
-			result |= Silk.NET.Vulkan.PipelineCreateFlags.CreateViewIndexFromDeviceIndexBit;
+			result |= VkPipelineCreateFlags.CreateViewIndexFromDeviceIndexBit;
 		}
 
 		if ((flags & PipelineCreateFlags.CreateDispatchBaseBit) != 0)
 		{
-			result |= Silk.NET.Vulkan.PipelineCreateFlags.CreateDispatchBaseBit;
+			result |= VkPipelineCreateFlags.CreateDispatchBaseBit;
 		}
 
 		if ((flags & PipelineCreateFlags.CreateDispatchBase) != 0)
 		{
-			result |= Silk.NET.Vulkan.PipelineCreateFlags.CreateDispatchBase;
+			result |= VkPipelineCreateFlags.CreateDispatchBase;
 		}
 
 		if ((flags & PipelineCreateFlags.CreateFailOnPipelineCompileRequiredBit) != 0)
 		{
-			result |= Silk.NET.Vulkan.PipelineCreateFlags.CreateFailOnPipelineCompileRequiredBit;
+			result |= VkPipelineCreateFlags.CreateFailOnPipelineCompileRequiredBit;
 		}
 
 		if ((flags & PipelineCreateFlags.CreateEarlyReturnOnFailureBit) != 0)
 		{
-			result |= Silk.NET.Vulkan.PipelineCreateFlags.CreateEarlyReturnOnFailureBit;
+			result |= VkPipelineCreateFlags.CreateEarlyReturnOnFailureBit;
 		}
 
 		return result;

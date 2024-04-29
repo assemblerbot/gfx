@@ -1,4 +1,5 @@
 using Silk.NET.Vulkan;
+using VkRenderPass = Silk.NET.Vulkan.RenderPass;
 
 namespace Gfx;
 
@@ -8,7 +9,7 @@ public sealed unsafe class VulkanRenderPass : RenderPass
 	private readonly VulkanLogicalDevice _logicalDevice;
 	private readonly VulkanSwapChain     _swapChain;
 	
-	internal Silk.NET.Vulkan.RenderPass RenderPass;
+	internal VkRenderPass RenderPass;
 	
 	public VulkanRenderPass(VulkanApi api, VulkanLogicalDevice logicalDevice, VulkanSwapChain swapChain, RenderPassOptions options)
 	{
@@ -33,7 +34,7 @@ public sealed unsafe class VulkanRenderPass : RenderPass
 
 	#region Initialization
 
-	private void InitColor(out Silk.NET.Vulkan.RenderPass renderPass)
+	private void InitColor(out VkRenderPass renderPass)
 	{
 		AttachmentDescription colorAttachment = new()
 		                                        {
@@ -86,7 +87,7 @@ public sealed unsafe class VulkanRenderPass : RenderPass
 		}
 	}
 	
-	private void InitColorAndDepthStencil(out Silk.NET.Vulkan.RenderPass renderPass)
+	private void InitColorAndDepthStencil(out VkRenderPass renderPass)
 	{
 		AttachmentDescription colorAttachment = new()
 		                                        {

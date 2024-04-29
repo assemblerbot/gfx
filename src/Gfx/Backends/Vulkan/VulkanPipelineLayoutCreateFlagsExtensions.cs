@@ -1,14 +1,16 @@
+using VkPipelineLayoutCreateFlags = Silk.NET.Vulkan.PipelineLayoutCreateFlags;
+
 namespace Gfx;
 
 public static class VulkanPipelineLayoutCreateFlagsExtensions
 {
-	public static Silk.NET.Vulkan.PipelineLayoutCreateFlags ToVulkanPipelineLayoutCreateFlags(this PipelineLayoutCreateFlags flags)
+	public static VkPipelineLayoutCreateFlags ToVulkanPipelineLayoutCreateFlags(this PipelineLayoutCreateFlags flags)
 	{
-		Silk.NET.Vulkan.PipelineLayoutCreateFlags result = Silk.NET.Vulkan.PipelineLayoutCreateFlags.None;
+		VkPipelineLayoutCreateFlags result = VkPipelineLayoutCreateFlags.None;
 
 		if ((flags & PipelineLayoutCreateFlags.IndependentSets) != 0)
 		{
-			result |= Silk.NET.Vulkan.PipelineLayoutCreateFlags.IndependentSetsBitExt;
+			result |= VkPipelineLayoutCreateFlags.IndependentSetsBitExt;
 		}
 
 		return result;

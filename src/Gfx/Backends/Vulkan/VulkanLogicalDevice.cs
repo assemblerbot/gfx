@@ -1,6 +1,7 @@
 using System.Runtime.CompilerServices;
 using Silk.NET.Core.Native;
 using Silk.NET.Vulkan;
+using VkCommandBuffer = Silk.NET.Vulkan.CommandBuffer;
 
 namespace Gfx;
 
@@ -80,7 +81,7 @@ public sealed unsafe class VulkanLogicalDevice : LogicalDevice
 
 	public override void QueueSubmit(DeviceQueue queue, CommandBuffer commandBuffer)
 	{
-		fixed (Silk.NET.Vulkan.CommandBuffer* buffer = &((VulkanCommandBuffer) commandBuffer).CommandBuffer)
+		fixed (VkCommandBuffer* buffer = &((VulkanCommandBuffer) commandBuffer).CommandBuffer)
 		{
 
 			SubmitInfo submitInfo = new()

@@ -1,4 +1,6 @@
 using Silk.NET.Vulkan;
+using VkPipelineLayout = Silk.NET.Vulkan.PipelineLayout;
+using VkDescriptorSetLayout = Silk.NET.Vulkan.DescriptorSetLayout;
 
 namespace Gfx;
 
@@ -6,7 +8,7 @@ public sealed unsafe class VulkanPipelineLayout : PipelineLayout
 {
 	private readonly VulkanApi                      _api;
 	private readonly VulkanLogicalDevice            _logicalDevice;
-	private readonly Silk.NET.Vulkan.PipelineLayout _pipelineLayout;
+	private readonly VkPipelineLayout _pipelineLayout;
 	
 	internal VulkanPipelineLayout(VulkanApi api, VulkanLogicalDevice logicalDevice, DescriptorSetLayout descriptorSetLayout)
 	{
@@ -16,7 +18,7 @@ public sealed unsafe class VulkanPipelineLayout : PipelineLayout
 		VulkanDescriptorSetLayout vulkanDescriptorSetLayout = (VulkanDescriptorSetLayout) descriptorSetLayout;
 
 		Result result;
-		fixed (Silk.NET.Vulkan.DescriptorSetLayout* vulkanDescriptorSetLayoutPtr = &vulkanDescriptorSetLayout.Layout)
+		fixed (VkDescriptorSetLayout* vulkanDescriptorSetLayoutPtr = &vulkanDescriptorSetLayout.Layout)
 		{
 			PipelineLayoutCreateInfo info = new()
 			                                {
