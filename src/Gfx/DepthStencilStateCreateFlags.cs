@@ -1,5 +1,6 @@
 namespace Gfx;
 
+[Flags]
 public enum DepthStencilStateCreateFlags
 {
 	None          = 0,
