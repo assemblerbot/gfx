@@ -6,8 +6,8 @@ public static class VulkanSharingModeExtensions
 	{
 		return mode switch
 		{
-			SharingMode.Excludive => Silk.NET.Vulkan.SharingMode.Exclusive,
-			SharingMode.Concurent => Silk.NET.Vulkan.SharingMode.Concurrent,
+			SharingMode.Exclusive => Silk.NET.Vulkan.SharingMode.Exclusive,
+			SharingMode.Concurrent => Silk.NET.Vulkan.SharingMode.Concurrent,
 			_ => throw new GfxException("Invalid sharing mode.")
 		};
 	}

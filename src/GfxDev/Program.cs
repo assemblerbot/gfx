@@ -145,7 +145,7 @@ internal unsafe class GfxTestApplication
 				new DeviceBufferOptions(
 					verticesSize,
 					DeviceBufferUsage.TransferSrc,
-					SharingMode.Excludive
+					SharingMode.Exclusive
 				)
 			);
 
@@ -173,7 +173,7 @@ internal unsafe class GfxTestApplication
 				new DeviceBufferOptions(
 					verticesSize,
 					DeviceBufferUsage.TransferDst | DeviceBufferUsage.VertexBuffer,
-					SharingMode.Excludive
+					SharingMode.Exclusive
 				)
 			);
 
