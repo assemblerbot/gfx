@@ -4,7 +4,7 @@ namespace Gfx;
 
 public static class VulkanDynamicStateExtensions
 {
-	public static VkDynamicState ToVulkan(DynamicState state)
+	public static VkDynamicState ToVulkan(this DynamicState state)
 	{
 		return state switch
 		{

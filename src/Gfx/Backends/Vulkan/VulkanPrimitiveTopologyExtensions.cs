@@ -4,7 +4,7 @@ namespace Gfx;
 
 public static class VulkanPrimitiveTopologyExtensions
 {
-	public static VkPrimitiveTopology ToVulkanPrimitiveTopology(this PrimitiveTopology topology)
+	public static VkPrimitiveTopology ToVulkan(this PrimitiveTopology topology)
 	{
 		return topology switch
 		{

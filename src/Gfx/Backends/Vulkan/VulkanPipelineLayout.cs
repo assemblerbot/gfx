@@ -8,7 +8,7 @@ public sealed unsafe class VulkanPipelineLayout : PipelineLayout
 {
 	private readonly VulkanApi                      _api;
 	private readonly VulkanLogicalDevice            _logicalDevice;
-	private readonly VkPipelineLayout _pipelineLayout;
+	public readonly VkPipelineLayout PipelineLayout;
 	
 	internal VulkanPipelineLayout(VulkanApi api, VulkanLogicalDevice logicalDevice, DescriptorSetLayout descriptorSetLayout)
 	{
@@ -28,7 +28,7 @@ public sealed unsafe class VulkanPipelineLayout : PipelineLayout
 				                                PSetLayouts            = vulkanDescriptorSetLayoutPtr
 			                                };
 
-			result = _api.Vk.CreatePipelineLayout(_logicalDevice.Device, info, null, out _pipelineLayout);
+			result = _api.Vk.CreatePipelineLayout(_logicalDevice.Device, info, null, out PipelineLayout);
 		}
 
 		if (result != Result.Success)
@@ -39,6 +39,6 @@ public sealed unsafe class VulkanPipelineLayout : PipelineLayout
 
 	public override void Dispose()
 	{
-		_api.Vk.DestroyPipelineLayout(_logicalDevice.Device, _pipelineLayout, null);
+		_api.Vk.DestroyPipelineLayout(_logicalDevice.Device, PipelineLayout, null);
 	}
 }

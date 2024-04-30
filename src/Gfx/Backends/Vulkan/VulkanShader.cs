@@ -35,7 +35,7 @@ public sealed unsafe class VulkanShader : Shader
 		             {
 			             SType  = StructureType.PipelineShaderStageCreateInfo,
 			             Stage  = options.Stage.ToVulkan(),
-			             Module = _shaderModule,
+			             Module = ShaderModule,
 			             PName  = (byte*)SilkMarshal.StringToPtr(options.MainFunction)
 		             };
 	}

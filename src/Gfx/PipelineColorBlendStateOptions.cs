@@ -6,7 +6,7 @@ public struct PipelineColorBlendStateOptions
 	public bool                                LogicOpEnable;
 	public LogicOp                             LogicOp;
 	public PipelineColorBlendAttachmentState[] Attachments;
-	public float[]                             BlendConstants = new float[4]; // unsafe fixed float[4]
+	public float[]                             BlendConstants = new float[4]; // unsafe fixed float[4] in vulkan implementation
 
 	public PipelineColorBlendStateOptions(PipelineColorBlendStateCreateFlags flags, bool logicOpEnable, LogicOp logicOp, PipelineColorBlendAttachmentState[] attachments)
 	{
