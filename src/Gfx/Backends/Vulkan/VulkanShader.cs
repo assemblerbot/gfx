@@ -7,8 +7,8 @@ public sealed unsafe class VulkanShader : Shader
 {
 	private readonly VulkanApi                     _api;
 	private readonly VulkanLogicalDevice           _logicalDevice;
-	private readonly PipelineShaderStageCreateInfo _stageInfo;
-	private readonly ShaderModule                  _shaderModule;
+	public readonly PipelineShaderStageCreateInfo StageInfo;
+	public readonly ShaderModule                  ShaderModule;
 	
 	public VulkanShader(VulkanApi api, VulkanLogicalDevice logicalDevice, ShaderOptions options)
 	{
@@ -25,13 +25,13 @@ public sealed unsafe class VulkanShader : Shader
 		{
 			createInfo.PCode = (uint*)codePtr;
 
-			if (_api.Vk.CreateShaderModule(_logicalDevice.Device, createInfo, null, out _shaderModule) != Result.Success)
+			if (_api.Vk.CreateShaderModule(_logicalDevice.Device, createInfo, null, out ShaderModule) != Result.Success)
 			{
 				throw new GfxException("Shader module creation failed!");
 			}
 		}
 		
-		_stageInfo = new()
+		StageInfo = new()
 		             {
 			             SType  = StructureType.PipelineShaderStageCreateInfo,
 			             Stage  = options.Stage.ToVulkan(),
@@ -42,7 +42,7 @@ public sealed unsafe class VulkanShader : Shader
 
 	public override void Dispose()
 	{
-		_api.Vk.DestroyShaderModule(_logicalDevice.Device, _shaderModule, null);
-		SilkMarshal.Free((nint) _stageInfo.PName);
+		_api.Vk.DestroyShaderModule(_logicalDevice.Device, ShaderModule, null);
+		SilkMarshal.Free((nint) StageInfo.PName);
 	}
 }

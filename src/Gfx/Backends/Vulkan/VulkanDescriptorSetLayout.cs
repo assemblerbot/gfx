@@ -19,7 +19,7 @@ public sealed unsafe class VulkanDescriptorSetLayout : DescriptorSetLayout
 		
 		List<IntPtr> allocatedPointers = new();
 		
-		VkDescriptorSetLayoutBinding[] bindings = new VkDescriptorSetLayoutBinding[options.Bindings.Length];
+		VkDescriptorSetLayoutBinding* bindings = stackalloc VkDescriptorSetLayoutBinding[options.Bindings.Length];
 		for (int i = 0; i < options.Bindings.Length; ++i)
 		{
 			IntPtr samplersPtr = default;
@@ -46,14 +46,13 @@ public sealed unsafe class VulkanDescriptorSetLayout : DescriptorSetLayout
 		}
 
 		Result result = Result.Success;
-		fixed (VkDescriptorSetLayoutBinding* bindingsPtr = bindings)
 		fixed (VkDescriptorSetLayout* descriptorSetLayoutPtr = &Layout)
 		{
 			Silk.NET.Vulkan.DescriptorSetLayoutCreateInfo info = new()
 			                                                     {
 				                                                     SType        = StructureType.DescriptorSetLayoutCreateInfo,
-				                                                     BindingCount = (uint)bindings.Length,
-				                                                     PBindings    = bindingsPtr,
+				                                                     BindingCount = (uint)options.Bindings.Length,
+				                                                     PBindings    = bindings,
 			                                                     };
 
 			result = _api.Vk.CreateDescriptorSetLayout(_logicalDevice.Device, info, null, descriptorSetLayoutPtr);
