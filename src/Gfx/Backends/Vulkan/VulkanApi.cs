@@ -205,7 +205,7 @@ public sealed unsafe class VulkanApi : Api
 	
 	private uint DebugCallback(DebugUtilsMessageSeverityFlagsEXT messageSeverity, DebugUtilsMessageTypeFlagsEXT messageTypes, DebugUtilsMessengerCallbackDataEXT* pCallbackData, void* pUserData)
 	{
-		_debugMessageLog!.Invoke(messageSeverity.ToGfxDebugMessageSeverity(), messageTypes.ToGfxDebugMessageKind(), Marshal.PtrToStringAnsi((nint) pCallbackData->PMessage) ?? ""); 
+		_debugMessageLog!.Invoke(messageSeverity.ToGfx(), messageTypes.ToGfx(), Marshal.PtrToStringAnsi((nint) pCallbackData->PMessage) ?? ""); 
 		return Vk.False;
 	}
 

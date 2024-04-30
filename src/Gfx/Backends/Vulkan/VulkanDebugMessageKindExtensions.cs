@@ -4,7 +4,7 @@ namespace Gfx;
 
 public static class VulkanDebugMessageKindExtensions
 {
-	public static DebugMessageKind ToGfxDebugMessageKind(this DebugUtilsMessageTypeFlagsEXT @this)
+	public static DebugMessageKind ToGfx(this DebugUtilsMessageTypeFlagsEXT @this)
 	{
 		if ((@this & DebugUtilsMessageTypeFlagsEXT.PerformanceBitExt) != 0)
 		{

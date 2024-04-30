@@ -4,7 +4,7 @@ namespace Gfx;
 
 public static class VulkanStencilOpExtensions
 {
-	public static VkStencilOp ToVulkanStencilOp(this StencilOp stencilOp)
+	public static VkStencilOp ToVulkan(this StencilOp stencilOp)
 	{
 		return stencilOp switch
 		{

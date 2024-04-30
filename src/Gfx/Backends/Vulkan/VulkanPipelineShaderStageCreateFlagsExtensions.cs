@@ -4,7 +4,7 @@ namespace Gfx;
 
 public static class VulkanPipelineShaderStageCreateFlagsExtensions
 {
-	public static VkPipelineShaderStageCreateFlags ToVulkanPipelineShaderStageCreateFlags(this PipelineShaderStageCreateFlags flags)
+	public static VkPipelineShaderStageCreateFlags ToVulkan(this PipelineShaderStageCreateFlags flags)
 	{
 		VkPipelineShaderStageCreateFlags result = VkPipelineShaderStageCreateFlags.None;
 

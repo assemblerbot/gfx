@@ -4,7 +4,7 @@ namespace Gfx;
 
 public static class VulkanImageFormatExtensions
 {
-    public static DeviceFormat Convert(this VkFormat @this)
+    public static DeviceFormat FromVulkan(this VkFormat @this)
     {
         return @this switch
         {

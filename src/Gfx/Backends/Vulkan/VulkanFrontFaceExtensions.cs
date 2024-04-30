@@ -4,7 +4,7 @@ namespace Gfx;
 
 public static class VulkanFrontFaceExtensions
 {
-	public static VkFrontFace ToVulkanFrontFace(this FrontFace frontFace)
+	public static VkFrontFace ToVulkan(this FrontFace frontFace)
 	{
 		return frontFace switch
 		{

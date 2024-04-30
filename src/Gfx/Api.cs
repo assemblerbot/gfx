@@ -12,7 +12,7 @@ public abstract class Api : IDisposable
 			return GraphicsBackend.Vulkan;
 		}
 		
-		if(RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+		if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 		{
 			return GraphicsBackend.Vulkan;
 		}

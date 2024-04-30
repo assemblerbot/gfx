@@ -4,7 +4,7 @@ namespace Gfx;
 
 public static class VulkanShaderStageExtensions
 {
-	public static ShaderStageFlags ToVulkanShaderStageFlags(this ShaderStage stage)
+	public static ShaderStageFlags ToVulkan(this ShaderStage stage)
 	{
 		ShaderStageFlags flags = ShaderStageFlags.None;
 

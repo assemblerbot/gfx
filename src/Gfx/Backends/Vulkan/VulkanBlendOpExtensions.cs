@@ -4,7 +4,7 @@ namespace Gfx;
 
 public static class VulkanBlendOpExtensions
 {
-	public static VkBlendOp ToVulkanBlendOp(this BlendOp blendOp)
+	public static VkBlendOp ToVulkan(this BlendOp blendOp)
 	{
 		return blendOp switch
 		{
@@ -30,20 +30,20 @@ public static class VulkanBlendOpExtensions
 			BlendOp.OverlayExt          => VkBlendOp.OverlayExt          ,
 			BlendOp.DarkenExt           => VkBlendOp.DarkenExt           ,
 			BlendOp.LightenExt          => VkBlendOp.LightenExt          ,
-			BlendOp.ColordodgeExt       => VkBlendOp.ColordodgeExt       ,
-			BlendOp.ColorburnExt        => VkBlendOp.ColorburnExt        ,
-			BlendOp.HardlightExt        => VkBlendOp.HardlightExt        ,
-			BlendOp.SoftlightExt        => VkBlendOp.SoftlightExt        ,
+			BlendOp.ColorDodgeExt       => VkBlendOp.ColordodgeExt       ,
+			BlendOp.ColorBurnExt        => VkBlendOp.ColorburnExt        ,
+			BlendOp.HardLightExt        => VkBlendOp.HardlightExt        ,
+			BlendOp.SoftLightExt        => VkBlendOp.SoftlightExt        ,
 			BlendOp.DifferenceExt       => VkBlendOp.DifferenceExt       ,
 			BlendOp.ExclusionExt        => VkBlendOp.ExclusionExt        ,
 			BlendOp.InvertExt           => VkBlendOp.InvertExt           ,
 			BlendOp.InvertRgbExt        => VkBlendOp.InvertRgbExt        ,
-			BlendOp.LineardodgeExt      => VkBlendOp.LineardodgeExt      ,
-			BlendOp.LinearburnExt       => VkBlendOp.LinearburnExt       ,
-			BlendOp.VividlightExt       => VkBlendOp.VividlightExt       ,
-			BlendOp.LinearlightExt      => VkBlendOp.LinearlightExt      ,
-			BlendOp.PinlightExt         => VkBlendOp.PinlightExt         ,
-			BlendOp.HardmixExt          => VkBlendOp.HardmixExt          ,
+			BlendOp.LinearDodgeExt      => VkBlendOp.LineardodgeExt      ,
+			BlendOp.LinearBurnExt       => VkBlendOp.LinearburnExt       ,
+			BlendOp.VividLightExt       => VkBlendOp.VividlightExt       ,
+			BlendOp.LinearLightExt      => VkBlendOp.LinearlightExt      ,
+			BlendOp.PinLightExt         => VkBlendOp.PinlightExt         ,
+			BlendOp.HardMixExt          => VkBlendOp.HardmixExt          ,
 			BlendOp.HslHueExt           => VkBlendOp.HslHueExt           ,
 			BlendOp.HslSaturationExt    => VkBlendOp.HslSaturationExt    ,
 			BlendOp.HslColorExt         => VkBlendOp.HslColorExt         ,

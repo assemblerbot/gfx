@@ -4,7 +4,7 @@ namespace Gfx;
 
 public static class VulkanDebugMessageSeverityExtensions
 {
-	public static DebugMessageSeverity ToGfxDebugMessageSeverity(this DebugUtilsMessageSeverityFlagsEXT @this)
+	public static DebugMessageSeverity ToGfx(this DebugUtilsMessageSeverityFlagsEXT @this)
 	{
 		if ((@this & DebugUtilsMessageSeverityFlagsEXT.ErrorBitExt) != 0)
 		{

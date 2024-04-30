@@ -4,7 +4,7 @@ namespace Gfx;
 
 public static class VulkanBorderColorExtensions
 {
-	public static VkBorderColor ToVulkanBorderColor(this BorderColor borderColor)
+	public static VkBorderColor ToVulkan(this BorderColor borderColor)
 	{
 		return borderColor switch
 		{

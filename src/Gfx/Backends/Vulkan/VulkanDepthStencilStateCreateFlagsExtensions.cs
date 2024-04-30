@@ -4,7 +4,7 @@ namespace Gfx;
 
 public static class VulkanDepthStencilStateCreateFlagsExtensions
 {
-	public static PipelineDepthStencilStateCreateFlags ToVulkanPipelineDepthStencilStateCreateFlags(this DepthStencilStateCreateFlags depthStencilStateCreateFlags)
+	public static PipelineDepthStencilStateCreateFlags ToVulkan(this DepthStencilStateCreateFlags depthStencilStateCreateFlags)
 	{
 		PipelineDepthStencilStateCreateFlags flags = PipelineDepthStencilStateCreateFlags.None;
 		if ((depthStencilStateCreateFlags & DepthStencilStateCreateFlags.DepthAccess) != 0)

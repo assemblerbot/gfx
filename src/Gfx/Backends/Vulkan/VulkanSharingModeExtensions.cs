@@ -4,7 +4,7 @@ namespace Gfx;
 
 public static class VulkanSharingModeExtensions
 {
-	public static VkSharingMode ToVulkanSharingMode(this SharingMode mode)
+	public static VkSharingMode ToVulkan(this SharingMode mode)
 	{
 		return mode switch
 		{

@@ -4,7 +4,7 @@ namespace Gfx;
 
 public static class VulkanLogicOpExtensions
 {
-	public static VkLogicOp ToVulkanLogicOp(this LogicOp logicOp)
+	public static VkLogicOp ToVulkan(this LogicOp logicOp)
 	{
 		return logicOp switch
 		{

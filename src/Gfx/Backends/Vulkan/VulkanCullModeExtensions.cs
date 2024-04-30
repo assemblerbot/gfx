@@ -4,7 +4,7 @@ namespace Gfx;
 
 public static class VulkanCullModeExtensions
 {
-	public static CullModeFlags ToVulkanCullModeFlags(this CullMode cullMode)
+	public static CullModeFlags ToVulkan(this CullMode cullMode)
 	{
 		CullModeFlags flags = CullModeFlags.None;
 		if ((cullMode & CullMode.Front) != 0)

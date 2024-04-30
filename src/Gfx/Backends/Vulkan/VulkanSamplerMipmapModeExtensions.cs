@@ -4,7 +4,7 @@ namespace Gfx;
 
 public static class VulkanSamplerMipmapModeExtensions
 {
-	public static VkSamplerMipmapMode ToVulkanSamplerMipmapMode(this SamplerMipmapMode mode)
+	public static VkSamplerMipmapMode ToVulkan(this SamplerMipmapMode mode)
 	{
 		return mode switch
 		{

@@ -4,7 +4,7 @@ namespace Gfx;
 
 public static class VulkanSamplerAddressModeExtensions
 {
-	public static VkSamplerAddressMode ToVulkanSamplerAddressMode(this SamplerAddressMode mode)
+	public static VkSamplerAddressMode ToVulkan(this SamplerAddressMode mode)
 	{
 		return mode switch
 		{

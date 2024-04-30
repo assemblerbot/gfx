@@ -4,7 +4,7 @@ namespace Gfx;
 
 public static class VulkanPipelineLayoutCreateFlagsExtensions
 {
-	public static VkPipelineLayoutCreateFlags ToVulkanPipelineLayoutCreateFlags(this PipelineLayoutCreateFlags flags)
+	public static VkPipelineLayoutCreateFlags ToVulkan(this PipelineLayoutCreateFlags flags)
 	{
 		VkPipelineLayoutCreateFlags result = VkPipelineLayoutCreateFlags.None;
 

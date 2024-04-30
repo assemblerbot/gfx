@@ -4,7 +4,7 @@ namespace Gfx;
 
 public static class VulkanVertexInputRateExtensions
 {
-	public static VkVertexInputRate ToVulkanVertexInputRate(this VertexInputRate rate)
+	public static VkVertexInputRate ToVulkan(this VertexInputRate rate)
 	{
 		return rate switch
 		{

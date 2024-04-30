@@ -4,7 +4,7 @@ namespace Gfx;
 
 public static class VulkanBlendFactorExtensions
 {
-	public static VkBlendFactor ToVulkanBlendFactor(this BlendFactor blendFactor)
+	public static VkBlendFactor ToVulkan(this BlendFactor blendFactor)
 	{
 		return blendFactor switch
 		{

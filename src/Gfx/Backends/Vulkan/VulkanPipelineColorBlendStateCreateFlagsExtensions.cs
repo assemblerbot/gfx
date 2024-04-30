@@ -4,7 +4,7 @@ namespace Gfx;
 
 public static class VulkanPipelineColorBlendStateCreateFlagsExtensions
 {
-	public static VkPipelineColorBlendStateCreateFlags ToVulkanPipelineColorBlendStateCreateFlags(this PipelineColorBlendStateCreateFlags createFlags)
+	public static VkPipelineColorBlendStateCreateFlags ToVulkan(this PipelineColorBlendStateCreateFlags createFlags)
 	{
 		VkPipelineColorBlendStateCreateFlags result = VkPipelineColorBlendStateCreateFlags.None;
 

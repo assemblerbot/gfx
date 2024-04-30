@@ -4,7 +4,7 @@ namespace Gfx;
 
 public static class VulkanFilterExtensions
 {
-	public static VkFilter ToVulkanFilter(this Filter filter)
+	public static VkFilter ToVulkan(this Filter filter)
 	{
 		return filter switch
 		{

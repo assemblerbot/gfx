@@ -4,7 +4,7 @@ namespace Gfx;
 
 public static class VulkanSamplerFlagsExtensions
 {
-	public static SamplerCreateFlags ToVulkanSamplerCreateFlags(this SamplerFlags flags)
+	public static SamplerCreateFlags ToVulkan(this SamplerFlags flags)
 	{
 		SamplerCreateFlags result = SamplerCreateFlags.None;
 

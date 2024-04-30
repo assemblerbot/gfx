@@ -4,7 +4,7 @@ namespace Gfx;
 
 public static class VulkanDeviceBufferUsageExtensions
 {
-	public static BufferUsageFlags ToVulkanBufferUsageFlags(this DeviceBufferUsage usage)
+	public static BufferUsageFlags ToVulkan(this DeviceBufferUsage usage)
 	{
 		BufferUsageFlags flags = BufferUsageFlags.None;
 

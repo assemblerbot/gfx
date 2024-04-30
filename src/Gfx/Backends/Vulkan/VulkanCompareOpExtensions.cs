@@ -4,7 +4,7 @@ namespace Gfx;
 
 public static class VulkanCompareOpExtensions
 {
-	public static VkCompareOp ToVulkanCompareOp(this CompareOp op)
+	public static VkCompareOp ToVulkan(this CompareOp op)
 	{
 		return op switch
 		{

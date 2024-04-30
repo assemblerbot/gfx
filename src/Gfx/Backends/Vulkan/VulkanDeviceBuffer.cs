@@ -18,8 +18,8 @@ public sealed unsafe class VulkanDeviceBuffer : DeviceBuffer
 		                              {
 			                              SType       = StructureType.BufferCreateInfo,
 			                              Size        = options.Size,
-			                              Usage       = options.Usage.ToVulkanBufferUsageFlags(),
-			                              SharingMode = options.SharingMode.ToVulkanSharingMode(),
+			                              Usage       = options.Usage.ToVulkan(),
+			                              SharingMode = options.SharingMode.ToVulkan(),
 		                              };
 
 		fixed (Buffer* bufferPtr = &Buffer)

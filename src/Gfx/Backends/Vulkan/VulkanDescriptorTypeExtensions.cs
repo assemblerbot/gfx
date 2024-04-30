@@ -4,7 +4,7 @@ namespace Gfx;
 
 public static class VulkanDescriptorTypeExtensions
 {
-	public static VkDescriptorType ToVulkanDescriptorType(this DescriptorKind type)
+	public static VkDescriptorType ToVulkan(this DescriptorKind type)
 	{
 		return type switch
 		{

@@ -4,7 +4,7 @@ namespace Gfx;
 
 public static class VulkanCommandBufferUsageExtensions
 {
-	public static CommandBufferUsageFlags ToVulkanCommandBufferUsageFlags(this CommandBufferUsage usage)
+	public static CommandBufferUsageFlags ToVulkan(this CommandBufferUsage usage)
 	{
 		CommandBufferUsageFlags flags = CommandBufferUsageFlags.None;
 		if ((usage & CommandBufferUsage.OneTimeSubmit) != 0)

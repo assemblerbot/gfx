@@ -16,7 +16,7 @@ public sealed class VulkanCommandBuffer : CommandBuffer
 		CommandBufferAllocateInfo allocateInfo = new()
 		                                         {
 			                                         SType              = StructureType.CommandBufferAllocateInfo,
-			                                         Level              = options.Level.ToVulkanCommandBufferLevel(),
+			                                         Level              = options.Level.ToVulkan(),
 			                                         CommandPool        = logicalDevice.CommandPool,
 			                                         CommandBufferCount = 1,
 		                                         };
@@ -34,7 +34,7 @@ public sealed class VulkanCommandBuffer : CommandBuffer
 		CommandBufferBeginInfo beginInfo = new()
 		                                   {
 			                                   SType = StructureType.CommandBufferBeginInfo,
-			                                   Flags = usage.ToVulkanCommandBufferUsageFlags(),
+			                                   Flags = usage.ToVulkan(),
 		                                   };
 
 		_api.Vk.BeginCommandBuffer(CommandBuffer, beginInfo);

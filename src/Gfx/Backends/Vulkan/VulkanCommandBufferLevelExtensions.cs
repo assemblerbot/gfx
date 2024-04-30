@@ -4,7 +4,7 @@ namespace Gfx;
 
 public static class VulkanCommandBufferLevelExtensions
 {
-	public static VkCommandBufferLevel ToVulkanCommandBufferLevel(this Gfx.CommandBufferLevel level)
+	public static VkCommandBufferLevel ToVulkan(this Gfx.CommandBufferLevel level)
 	{
 		return level switch
 		{

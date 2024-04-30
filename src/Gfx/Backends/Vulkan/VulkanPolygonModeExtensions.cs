@@ -4,7 +4,7 @@ namespace Gfx;
 
 public static class VulkanPolygonModeExtensions
 {
-	public static VkPolygonMode ToVulkanPolygonMode(this PolygonMode polygonMode)
+	public static VkPolygonMode ToVulkan(this PolygonMode polygonMode)
 	{
 		return polygonMode switch
 		{

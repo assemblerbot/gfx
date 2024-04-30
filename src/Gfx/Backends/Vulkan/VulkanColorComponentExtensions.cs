@@ -4,7 +4,7 @@ namespace Gfx;
 
 public static class VulkanColorComponentExtensions
 {
-	public static ColorComponentFlags ToVulkanColorComponentFlags(this ColorComponent component)
+	public static ColorComponentFlags ToVulkan(this ColorComponent component)
 	{
 		ColorComponentFlags flags = ColorComponentFlags.None;
 
