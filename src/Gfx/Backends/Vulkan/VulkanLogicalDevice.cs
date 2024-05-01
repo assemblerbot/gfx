@@ -64,6 +64,11 @@ public sealed unsafe class VulkanLogicalDevice : LogicalDevice
 		return new VulkanCommandBuffer(_api, this, options);
 	}
 
+	public override RenderPass CreateRenderPass(SwapChain swapChain, RenderPassOptions options)
+	{
+		return new VulkanRenderPass(_api, this, (VulkanSwapChain) swapChain, options);
+	}
+
 	public override Sampler CreateSampler(SamplerOptions options)
 	{
 		return new VulkanSampler(_api, this, options);
@@ -77,6 +82,11 @@ public sealed unsafe class VulkanLogicalDevice : LogicalDevice
 	public override PipelineLayout CreatePipelineLayout(DescriptorSetLayout layout)
 	{
 		return new VulkanPipelineLayout(_api, this, layout);
+	}
+
+	public override GraphicsPipeline CreateGraphicsPipeline(GraphicsPipelineOptions options)
+	{
+		return new VulkanGraphicsPipeline(_api, this, options);
 	}
 
 	public override void QueueSubmit(DeviceQueue queue, CommandBuffer commandBuffer)

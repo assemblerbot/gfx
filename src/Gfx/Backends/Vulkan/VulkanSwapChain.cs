@@ -18,31 +18,34 @@ public sealed unsafe class VulkanSwapChain : SwapChain
 
 	internal readonly SampleCountFlags MsaaSampleCount;
 
-	private  KhrSwapchain?          _khrSwapChain;
-	private  SwapchainKHR           _swapChain;
-	private  Image[]?               _swapChainImages;
-	internal VkFormat SwapChainImageFormat;
-	internal VkFormat SwapChainDepthStencilFormat;
-	private  Extent2D               _swapChainExtent;
-	private  ImageView[]?           _swapChainImageViews;
-	private  Framebuffer[]?         _swapChainFramebuffers;
+	private  KhrSwapchain?  _khrSwapChain;
+	private  SwapchainKHR   _swapChain;
+	private  Image[]?       _swapChainImages;
+	internal VkFormat       SwapChainImageFormat;
+	internal VkFormat       SwapChainDepthStencilFormat;
+	private  Extent2D       _swapChainExtent;
+	private  ImageView[]?   _swapChainImageViews;
+	private  Framebuffer[]? _swapChainFramebuffers;
 	
-	private Image                        _colorImage;
+	private Image          _colorImage;
 	private VkDeviceMemory _colorImageMemory;
-	private ImageView                    _colorImageView;
+	private ImageView      _colorImageView;
 
-	private Image                        _depthImage;
+	private Image          _depthImage;
 	private VkDeviceMemory _depthImageMemory;
-	private ImageView                    _depthImageView;
+	private ImageView      _depthImageView;
 
 	private VkSemaphore[]? _imageAvailableSemaphores;
 	private VkSemaphore[]? _renderFinishedSemaphores;
-	private Fence[]?     _inFlightFences;
-	private Fence[]?     _imagesInFlight;
+	private Fence[]?       _framesInFlightFences;
+	private Fence[]?       _imagesInFlightFences;
 
 	private VulkanRenderPass? _renderPass;
 	
 	internal bool HasDepthStencil => SwapChainDepthStencilFormat != VkFormat.Undefined;
+
+	public override uint Width  => _swapChainExtent.Width;
+	public override uint Height => _swapChainExtent.Height;
 	
 	public VulkanSwapChain(VulkanApi api, VulkanPhysicalDevice physicalDevice, VulkanLogicalDevice logicalDevice, SwapChainOptions options)
 	{
@@ -58,7 +61,7 @@ public sealed unsafe class VulkanSwapChain : SwapChain
 		InitFrameBuffers(out _swapChainFramebuffers);
 		InitColorResources(ref _colorImage, ref _colorImageMemory, ref _colorImageView);
 		InitDepthResources(ref _depthImage, ref _depthImageMemory, ref _depthImageView);
-		InitSyncObjects(out _imageAvailableSemaphores, out _renderFinishedSemaphores, out _inFlightFences, out _imagesInFlight);
+		InitSyncObjects(out _imageAvailableSemaphores, out _renderFinishedSemaphores, out _framesInFlightFences, out _imagesInFlightFences);
 	}
 
 	public void DisposeOnResized()
@@ -99,10 +102,20 @@ public sealed unsafe class VulkanSwapChain : SwapChain
 		{
 			_api.Vk.DestroySemaphore(_logicalDevice.Device, _renderFinishedSemaphores![i], null);
 			_api.Vk.DestroySemaphore(_logicalDevice.Device, _imageAvailableSemaphores![i], null);
-			_api.Vk.DestroyFence(_logicalDevice.Device, _inFlightFences![i], null);
+			_api.Vk.DestroyFence(_logicalDevice.Device, _framesInFlightFences![i], null);
 		}
 	}
-	
+
+	public override void WaitForFence(int swapChainBufferIndex, ulong timeout = ulong.MaxValue)
+	{
+		_api.Vk.WaitForFences(_logicalDevice.Device, 1, _framesInFlightFences[swapChainBufferIndex], true, timeout);
+	}
+
+	public override GfxResult AcquireNextImage(int swapChainBufferIndex, ref uint imageIndex, ulong timeout = ulong.MaxValue)
+	{
+		return _khrSwapChain.AcquireNextImage(_logicalDevice.Device, _swapChain, timeout, _imageAvailableSemaphores[swapChainBufferIndex], default, ref imageIndex).ToGfx();
+	}
+
 	#region Initialization
 	private void InitMsaaSampleCount(out SampleCountFlags msaaSampleCount, SampleCount desiredMsaaSampleCount)
 	{
@@ -112,14 +125,14 @@ public sealed unsafe class VulkanSwapChain : SwapChain
 	}
 
 	private void InitSwapChain(
-		DeviceFormat                     desiredDeviceFormat,
-		bool                       needDepthStencil,
-		ref KhrSwapchain?          khrSwapChain,
-		ref SwapchainKHR           swapChain,
-		ref Image[]?               swapChainImages,
-		ref VkFormat swapChainImageFormat,
-		ref VkFormat swapChainDepthStencilFormat,
-		ref Extent2D               swapChainExtent
+		DeviceFormat      desiredDeviceFormat,
+		bool              needDepthStencil,
+		ref KhrSwapchain? khrSwapChain,
+		ref SwapchainKHR  swapChain,
+		ref Image[]?      swapChainImages,
+		ref VkFormat      swapChainImageFormat,
+		ref VkFormat      swapChainDepthStencilFormat,
+		ref Extent2D      swapChainExtent
 	)
 	{
 		VulkanSwapChainSupportDetails swapChainSupport = _physicalDevice.SwapChainSupportDetails!;
@@ -262,8 +275,8 @@ public sealed unsafe class VulkanSwapChain : SwapChain
 	private void InitSyncObjects(
 		out VkSemaphore[]? imageAvailableSemaphores,
 		out VkSemaphore[]? renderFinishedSemaphores,
-		out Fence[]?     inFlightFences,
-		out Fence[]?     imagesInFlight
+		out Fence[]?       inFlightFences,
+		out Fence[]?       imagesInFlight
 	)
 	{
 		imageAvailableSemaphores = new VkSemaphore[_maxFramesInFlight];

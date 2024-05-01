@@ -1,0 +1,63 @@
+namespace Gfx;
+
+public enum GfxResult
+{
+    ErrorCompressionExhaustedExt = -1000338000, // 0xC4600DB0
+    ErrorInvalidVideoStdParametersKhr = -1000299000, // 0xC460A608
+    ErrorNoPipelineMatch = -1000298001, // 0xC460A9EF
+    ErrorInvalidPipelineCacheData = -1000298000, // 0xC460A9F0
+    ErrorInvalidDeviceAddressExt = -1000257000, // 0xC4614A18
+    ErrorInvalidOpaqueCaptureAddress = -1000257000, // 0xC4614A18
+    ErrorInvalidOpaqueCaptureAddressKhr = -1000257000, // 0xC4614A18
+    ErrorFullScreenExclusiveModeLostExt = -1000255000, // 0xC46151E8
+    ErrorNotPermittedExt = -1000174001, // 0xC4628E4F
+    ErrorNotPermittedKhr = -1000174001, // 0xC4628E4F
+    ErrorFragmentation = -1000161000, // 0xC462C118
+    ErrorFragmentationExt = -1000161000, // 0xC462C118
+    ErrorInvalidDrmFormatModifierPlaneLayoutExt = -1000158000, // 0xC462CCD0
+    ErrorInvalidExternalHandle = -1000072003, // 0xC4641CBD
+    ErrorInvalidExternalHandleKhr = -1000072003, // 0xC4641CBD
+    ErrorOutOfPoolMemory = -1000069000, // 0xC4642878
+    ErrorOutOfPoolMemoryKhr = -1000069000, // 0xC4642878
+    ErrorVideoStdVersionNotSupportedKhr = -1000023005, // 0xC464DC23
+    ErrorVideoProfileCodecNotSupportedKhr = -1000023004, // 0xC464DC24
+    ErrorVideoProfileFormatNotSupportedKhr = -1000023003, // 0xC464DC25
+    ErrorVideoProfileOperationNotSupportedKhr = -1000023002, // 0xC464DC26
+    ErrorVideoPictureLayoutNotSupportedKhr = -1000023001, // 0xC464DC27
+    ErrorImageUsageNotSupportedKhr = -1000023000, // 0xC464DC28
+    ErrorInvalidShaderNV = -1000012000, // 0xC4650720
+    ErrorValidationFailed = -1000011001, // 0xC4650B07
+    ErrorValidationFailedExt = -1000011001, // 0xC4650B07
+    ErrorIncompatibleDisplayKhr = -1000003001, // 0xC4652A47
+    ErrorOutOfDateKhr = -1000001004, // 0xC4653214
+    ErrorNativeWindowInUseKhr = -1000000001, // 0xC46535FF
+    ErrorSurfaceLostKhr = -1000000000, // 0xC4653600
+    ErrorUnknown = -13, // 0xFFFFFFF3
+    ErrorFragmentedPool = -12, // 0xFFFFFFF4
+    ErrorFormatNotSupported = -11, // 0xFFFFFFF5
+    ErrorTooManyObjects = -10, // 0xFFFFFFF6
+    ErrorIncompatibleDriver = -9, // 0xFFFFFFF7
+    ErrorFeatureNotPresent = -8, // 0xFFFFFFF8
+    ErrorExtensionNotPresent = -7, // 0xFFFFFFF9
+    ErrorLayerNotPresent = -6, // 0xFFFFFFFA
+    ErrorMemoryMapFailed = -5, // 0xFFFFFFFB
+    ErrorDeviceLost = -4, // 0xFFFFFFFC
+    ErrorInitializationFailed = -3, // 0xFFFFFFFD
+    ErrorOutOfDeviceMemory = -2, // 0xFFFFFFFE
+    ErrorOutOfHostMemory = -1, // 0xFFFFFFFF
+    Success = 0,
+    NotReady = 1,
+    Timeout = 2,
+    EventSet = 3,
+    EventReset = 4,
+    Incomplete = 5,
+    SuboptimalKhr = 1000001003, // 0x3B9ACDEB
+    ThreadIdleKhr = 1000268000, // 0x3B9EE0E0
+    ThreadDoneKhr = 1000268001, // 0x3B9EE0E1
+    OperationDeferredKhr = 1000268002, // 0x3B9EE0E2
+    OperationNotDeferredKhr = 1000268003, // 0x3B9EE0E3
+    ErrorPipelineCompileRequiredExt = 1000297000, // 0x3B9F5228
+    PipelineCompileRequired = 1000297000, // 0x3B9F5228
+    PipelineCompileRequiredExt = 1000297000, // 0x3B9F5228
+    ErrorIncompatibleShaderBinaryExt = 1000482000, // 0x3BA224D0
+}

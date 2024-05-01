@@ -16,6 +16,8 @@ internal unsafe class GfxTestApplication
 		public Vector4 Color;
 	}
 
+	private const int _framesInFlight = 2;
+
 	private const GraphicsBackend _graphicsBackend = GraphicsBackend.Vulkan;
 	private       IWindow         _window;
 	public        IWindow         NativeWindow => _window;
@@ -37,6 +39,14 @@ internal unsafe class GfxTestApplication
 	// shaders
 	private Shader? _vertexShader;
 	private Shader? _pixelShader;
+	
+	// pipeline stuff
+	private DescriptorSetLayout? _descriptorSetLayout;
+	private PipelineLayout?      _pipelineLayout;
+	private RenderPass?          _renderPass;
+	private GraphicsPipeline?    _pipeline;
+
+	private int _swapChainBufferIndex = 0;
 	
 	public void Run()
 	{
@@ -124,7 +134,7 @@ internal unsafe class GfxTestApplication
 
 	private void CreateSwapChain()
 	{
-		_swapChain = _logicalDevice!.CreateSwapChain(new SwapChainOptions(DeviceFormat.B8G8R8Srgb, true));
+		_swapChain = _logicalDevice!.CreateSwapChain(new SwapChainOptions(DeviceFormat.B8G8R8Srgb, true, _framesInFlight));
 	}
 
 	private void CreateMesh()
@@ -238,8 +248,13 @@ internal unsafe class GfxTestApplication
 
 	private void CleanUp()
 	{
-		_vertexShader.Dispose();
-		_pixelShader.Dispose();
+		_pipeline?.Dispose();
+		_renderPass?.Dispose();
+		_pipelineLayout?.Dispose();
+		_descriptorSetLayout?.Dispose();
+		
+		_vertexShader?.Dispose();
+		_pixelShader?.Dispose();
 		
 		_vertexBuffer?.Dispose();
 		_vertexBufferMemory?.Dispose();
@@ -251,6 +266,36 @@ internal unsafe class GfxTestApplication
 		_logicalDevice?.Dispose();
 		_api?.Dispose();
 		_window.Dispose();
+	}
+
+	private void CreatePipeline()
+	{
+		_descriptorSetLayout = _logicalDevice.CreateDescriptorSetLayout(
+			new DescriptorSetLayoutOptions() // no bindings yet
+		);
+		
+		_pipelineLayout = _logicalDevice.CreatePipelineLayout(_descriptorSetLayout);
+
+		_renderPass = _logicalDevice.CreateRenderPass(_swapChain, new RenderPassOptions());
+		
+		_pipeline = _logicalDevice.CreateGraphicsPipeline(
+			new GraphicsPipelineOptions(
+				PipelineCreateFlags.None,
+				new Shader[]{_vertexShader, _pixelShader},
+				new PipelineVertexInputStateOptions(new[]{_vertexInputBindingDescription}, _vertexInputAttributeDescriptions),
+				new PipelineInputAssemblyStateOptions(PrimitiveTopology.TriangleList, false),
+				new PipelineTessellationStateOptions(0),
+				new PipelineViewportStateOptions(new Viewport[]{new Viewport(0,0,_swapChain.Width,_swapChain.Height,0,1)}, new Scissor[]{new Scissor(0,0,_swapChain.Width,_swapChain.Height)}),
+				new PipelineRasterizationStateOptions(false, false, PolygonMode.Fill, CullMode.Back, FrontFace.CounterClockwise, false, 0, 0, 0, 1),
+				new PipelineMultisampleStateOptions(SampleCount.Count1, false, 0, default, false, false),
+				new PipelineDepthStencilStateOptions(DepthStencilStateCreateFlags.None, true, true, CompareOp.Less, false, 0, 0, false, default, default),
+				new PipelineColorBlendStateOptions(PipelineColorBlendStateCreateFlags.None, false, default, default),
+				new PipelineDynamicStateOptions(default),
+				_pipelineLayout,
+				_renderPass,
+				0
+			)
+		);
 	}
 
 	private void DebugMessageLog(DebugMessageSeverity severity, DebugMessageKind kind, string message)
@@ -268,7 +313,7 @@ internal unsafe class GfxTestApplication
 
 		CreateMesh();
 		CreateShaders();
-		//_deviceMemory = _logicalDevice.AllocateMemory(new DeviceMemoryOptions(1024, 1));
+		CreatePipeline();
 	}
 
 	private void OnUpdate(double timeDelta)
@@ -277,6 +322,29 @@ internal unsafe class GfxTestApplication
 
 	private void OnRender(double timeDelta)
 	{
+		
+		// check this: https://medium.com/@sanskritdarshan/vulkan-in-5-minutes-c5f7ae5a8005
+		
+		_swapChain.WaitForFence(_swapChainBufferIndex);
+
+		uint      imageIndex = 0;
+		GfxResult result = _swapChain.AcquireNextImage(_swapChainBufferIndex, ref imageIndex);
+		
+		// TODO - rebuild by result
+
+		if (result != GfxResult.Success && result != GfxResult.SuboptimalKhr)
+		{
+			throw new Exception("Failed to acquire swap chain image!");
+		}
+		
+		
+		
+		
+		
+		
+
+		_swapChainBufferIndex = (_swapChainBufferIndex + 1) % _framesInFlight;
+		
 	}
 
 	private void OnClose()

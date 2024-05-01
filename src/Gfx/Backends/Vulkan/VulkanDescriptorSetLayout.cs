@@ -17,32 +17,27 @@ public sealed unsafe class VulkanDescriptorSetLayout : DescriptorSetLayout
 		_api           = api;
 		_logicalDevice = logicalDevice;
 		
-		List<IntPtr> allocatedPointers = new();
-		
-		VkDescriptorSetLayoutBinding* bindings = stackalloc VkDescriptorSetLayoutBinding[options.Bindings.Length];
-		for (int i = 0; i < options.Bindings.Length; ++i)
+		VkDescriptorSetLayoutBinding* bindings = stackalloc VkDescriptorSetLayoutBinding[options.Bindings?.Length ?? 0];
+		if (options.Bindings is not null)
 		{
-			IntPtr samplersPtr = default;
-
-			int samplersCount = options.Bindings[i].Samplers.Length;
-			if (samplersCount > 0)
+			for (int i = 0; i < options.Bindings.Length; ++i)
 			{
-				samplersPtr = Marshal.AllocHGlobal(samplersCount * sizeof(VkSampler));
-				allocatedPointers.Add(samplersPtr);
-				
+				int        samplersCount = options.Bindings[i].Samplers.Length;
+				VkSampler* samplers      = stackalloc VkSampler[samplersCount];
+
 				for (int j = 0; j < samplersCount; ++j)
 				{
-					((VkSampler*) samplersPtr.ToPointer())[j] = ((VulkanSampler) options.Bindings[i].Samplers[j]).Sampler;
+					samplers[j] = ((VulkanSampler) options.Bindings[i].Samplers[j]).Sampler;
 				}
-			}
 
-			bindings[i] = new VkDescriptorSetLayoutBinding(
-				options.Bindings[i].Binding,
-				options.Bindings[i].DescriptorKind.ToVulkan(),
-				options.Bindings[i].DescriptorCount,
-				options.Bindings[i].ShaderStage.ToVulkan(),
-				(VkSampler*) samplersPtr.ToPointer()
-			);
+				bindings[i] = new VkDescriptorSetLayoutBinding(
+					options.Bindings[i].Binding,
+					options.Bindings[i].DescriptorKind.ToVulkan(),
+					options.Bindings[i].DescriptorCount,
+					options.Bindings[i].ShaderStage.ToVulkan(),
+					samplers
+				);
+			}
 		}
 
 		Result result = Result.Success;
@@ -51,16 +46,11 @@ public sealed unsafe class VulkanDescriptorSetLayout : DescriptorSetLayout
 			Silk.NET.Vulkan.DescriptorSetLayoutCreateInfo info = new()
 			                                                     {
 				                                                     SType        = StructureType.DescriptorSetLayoutCreateInfo,
-				                                                     BindingCount = (uint)options.Bindings.Length,
+				                                                     BindingCount = (uint)(options.Bindings?.Length ?? 0),
 				                                                     PBindings    = bindings,
 			                                                     };
 
 			result = _api.Vk.CreateDescriptorSetLayout(_logicalDevice.Device, info, null, descriptorSetLayoutPtr);
-		}
-
-		foreach (IntPtr ptr in allocatedPointers)
-		{
-			Marshal.FreeHGlobal(ptr);
 		}
 
 		if (result != Result.Success)
