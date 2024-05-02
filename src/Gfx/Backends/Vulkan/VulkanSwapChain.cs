@@ -25,7 +25,7 @@ public sealed unsafe class VulkanSwapChain : SwapChain
 	internal VkFormat       SwapChainDepthStencilFormat;
 	private  Extent2D       _swapChainExtent;
 	private  ImageView[]?   _swapChainImageViews;
-	private  Framebuffer[]? _swapChainFramebuffers;
+	internal  Framebuffer[]? SwapChainFramebuffers;
 	
 	private Image          _colorImage;
 	private VkDeviceMemory _colorImageMemory;
@@ -58,7 +58,7 @@ public sealed unsafe class VulkanSwapChain : SwapChain
 		InitSwapChain(options.FrameBufferDeviceFormat, options.NeedDepthStencil, ref _khrSwapChain, ref _swapChain, ref _swapChainImages, ref SwapChainImageFormat, ref SwapChainDepthStencilFormat, ref _swapChainExtent);
 		InitImageViews(out _swapChainImageViews);
 		InitRenderPass(out _renderPass);
-		InitFrameBuffers(out _swapChainFramebuffers);
+		InitFrameBuffers(out SwapChainFramebuffers);
 		InitColorResources(ref _colorImage, ref _colorImageMemory, ref _colorImageView);
 		InitDepthResources(ref _depthImage, ref _depthImageMemory, ref _depthImageView);
 		InitSyncObjects(out _imageAvailableSemaphores, out _renderFinishedSemaphores, out _framesInFlightFences, out _imagesInFlightFences);
@@ -73,7 +73,7 @@ public sealed unsafe class VulkanSwapChain : SwapChain
 			_api.Vk.FreeMemory(_logicalDevice.Device, _depthImageMemory, null);
 		}
 
-		foreach (var framebuffer in _swapChainFramebuffers!)
+		foreach (var framebuffer in SwapChainFramebuffers!)
 		{
 			_api.Vk.DestroyFramebuffer(_logicalDevice.Device, framebuffer, null);
 		}
@@ -111,9 +111,72 @@ public sealed unsafe class VulkanSwapChain : SwapChain
 		_api.Vk.WaitForFences(_logicalDevice.Device, 1, _framesInFlightFences[swapChainBufferIndex], true, timeout);
 	}
 
+	public override void ResetFence(int swapChainBufferIndex)
+	{
+		_api.Vk.ResetFences(_logicalDevice.Device, 1, _framesInFlightFences[swapChainBufferIndex]);
+	}
+
 	public override GfxResult AcquireNextImage(int swapChainBufferIndex, ref uint imageIndex, ulong timeout = ulong.MaxValue)
 	{
 		return _khrSwapChain.AcquireNextImage(_logicalDevice.Device, _swapChain, timeout, _imageAvailableSemaphores[swapChainBufferIndex], default, ref imageIndex).ToGfx();
+	}
+
+	public override void Submit(int swapChainBufferIndex, CommandBuffer commandBuffer)
+	{
+		var waitSemaphores   = stackalloc[] {_imageAvailableSemaphores[swapChainBufferIndex]};
+		var waitStages       = stackalloc[] {PipelineStageFlags.ColorAttachmentOutputBit}; // TODO - customizable?
+		var signalSemaphores = stackalloc[] {_renderFinishedSemaphores[swapChainBufferIndex]};
+		var buffer           = ((VulkanCommandBuffer) commandBuffer).CommandBuffer;
+
+		SubmitInfo submitInfo = new()
+		                        {
+			                        SType = StructureType.SubmitInfo,
+			                        WaitSemaphoreCount = 1,
+			                        PWaitSemaphores = waitSemaphores,
+			                        PWaitDstStageMask = waitStages,
+			                        CommandBufferCount = 1,
+			                        PCommandBuffers = &buffer,
+			                        SignalSemaphoreCount = 1,
+			                        PSignalSemaphores = signalSemaphores,
+		                        };
+
+		Result result = _api.Vk.QueueSubmit(_logicalDevice.GraphicsQueue, 1, submitInfo, _framesInFlightFences[swapChainBufferIndex]);
+		if (result != Result.Success)
+		{
+			throw new GfxException($"Failed to submit draw command buffer! Result: {result}");
+		}
+	}
+
+	public override void Present(int swapChainBufferIndex, uint imageIndex)
+	{
+		var swapChains       = stackalloc[] {_swapChain};
+		var signalSemaphores = stackalloc[] {_renderFinishedSemaphores[swapChainBufferIndex]};
+		
+		PresentInfoKHR presentInfo = new()
+		                             {
+			                             SType = StructureType.PresentInfoKhr,
+
+			                             WaitSemaphoreCount = 1,
+			                             PWaitSemaphores    = signalSemaphores,
+
+			                             SwapchainCount = 1,
+			                             PSwapchains    = swapChains,
+
+			                             PImageIndices = &imageIndex
+		                             };
+
+		Result result = _khrSwapChain.QueuePresent(_logicalDevice.PresentQueue, presentInfo);
+
+		// if (result == Result.ErrorOutOfDateKhr || result == Result.SuboptimalKhr || frameBufferResized)
+		// {
+		// 	frameBufferResized = false;
+		// 	RecreateSwapChain();
+		// }
+		// else
+		if (result != Result.Success)
+		{
+			throw new GfxException($"Failed to present swap chain image! Result:{result}");
+		}
 	}
 
 	#region Initialization

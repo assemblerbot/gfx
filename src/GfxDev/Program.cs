@@ -40,6 +40,9 @@ internal unsafe class GfxTestApplication
 	private Shader? _vertexShader;
 	private Shader? _pixelShader;
 	
+	// commands
+	private CommandBuffer[]? _commandBuffers;
+	
 	// pipeline stuff
 	private DescriptorSetLayout? _descriptorSetLayout;
 	private PipelineLayout?      _pipelineLayout;
@@ -246,13 +249,30 @@ internal unsafe class GfxTestApplication
 		_pixelShader = _logicalDevice.CreateShader(new ShaderOptions(pixelShaderCode, ShaderStage.Fragment, "main"));
 	}
 
+	private void CreateCommandBuffers()
+	{
+		_commandBuffers = new CommandBuffer[_framesInFlight];
+		for (int i = 0; i < _framesInFlight; ++i)
+		{
+			_commandBuffers[i] = _logicalDevice.CreateCommandBuffer(new CommandBufferOptions(CommandBufferLevel.Primary));
+		}
+	}
+
 	private void CleanUp()
 	{
 		_pipeline?.Dispose();
 		_renderPass?.Dispose();
 		_pipelineLayout?.Dispose();
 		_descriptorSetLayout?.Dispose();
-		
+
+		if (_commandBuffers is not null)
+		{
+			for (int i = 0; i < _commandBuffers.Length; ++i)
+			{
+				_commandBuffers[i].Dispose();
+			}
+		}
+
 		_vertexShader?.Dispose();
 		_pixelShader?.Dispose();
 		
@@ -289,7 +309,11 @@ internal unsafe class GfxTestApplication
 				new PipelineRasterizationStateOptions(false, false, PolygonMode.Fill, CullMode.Back, FrontFace.CounterClockwise, false, 0, 0, 0, 1),
 				new PipelineMultisampleStateOptions(SampleCount.Count1, false, 0, default, false, false),
 				new PipelineDepthStencilStateOptions(DepthStencilStateCreateFlags.None, true, true, CompareOp.Less, false, 0, 0, false, default, default),
-				new PipelineColorBlendStateOptions(PipelineColorBlendStateCreateFlags.None, false, default, default),
+				new PipelineColorBlendStateOptions(PipelineColorBlendStateCreateFlags.None, false, default,
+					new PipelineColorBlendAttachmentState[]{
+						                                       new (){BlendEnable = false, ColorWriteMask = ColorComponent.R|ColorComponent.G|ColorComponent.B|ColorComponent.A}
+					                                       }
+					),
 				new PipelineDynamicStateOptions(default),
 				_pipelineLayout,
 				_renderPass,
@@ -313,6 +337,7 @@ internal unsafe class GfxTestApplication
 
 		CreateMesh();
 		CreateShaders();
+		CreateCommandBuffers();
 		CreatePipeline();
 	}
 
@@ -326,6 +351,7 @@ internal unsafe class GfxTestApplication
 		// check this: https://medium.com/@sanskritdarshan/vulkan-in-5-minutes-c5f7ae5a8005
 		
 		_swapChain.WaitForFence(_swapChainBufferIndex);
+		_swapChain.ResetFence(_swapChainBufferIndex);
 
 		uint      imageIndex = 0;
 		GfxResult result = _swapChain.AcquireNextImage(_swapChainBufferIndex, ref imageIndex);
@@ -336,11 +362,22 @@ internal unsafe class GfxTestApplication
 		{
 			throw new Exception("Failed to acquire swap chain image!");
 		}
+
+		CommandBuffer commandBuffer = _commandBuffers[_swapChainBufferIndex]; 
+		commandBuffer.Begin();
+		commandBuffer.BeginRenderPass(
+			_renderPass, _swapChain, _swapChainBufferIndex,
+			0.5f,0.2f,0.1f,1f,
+			1f,0
+		);
+
+		commandBuffer.BindPipeline(_pipeline);
+		commandBuffer.BindVertexBuffer(_vertexBuffer, 0, 0);
+
+		commandBuffer.Draw(3, 1, 0, 0);
 		
-		
-		
-		
-		
+		commandBuffer.EndRenderPass();
+		commandBuffer.End();
 		
 
 		_swapChainBufferIndex = (_swapChainBufferIndex + 1) % _framesInFlight;

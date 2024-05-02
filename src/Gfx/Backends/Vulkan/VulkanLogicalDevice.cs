@@ -14,8 +14,8 @@ public sealed unsafe class VulkanLogicalDevice : LogicalDevice
     
 	internal readonly Device Device;
 
-	private readonly  Queue  _graphicsQueue;
-	private readonly  Queue  _presentQueue;
+	internal readonly  Queue  GraphicsQueue;
+	internal readonly  Queue  PresentQueue;
 	
 	public readonly CommandPool CommandPool;
     
@@ -24,7 +24,7 @@ public sealed unsafe class VulkanLogicalDevice : LogicalDevice
 		_api            = api;
 		PhysicalDevice = (VulkanPhysicalDevice)options.PhysicalDevice;
 
-		InitDeviceAndQueues(out Device, out _graphicsQueue, out _presentQueue);
+		InitDeviceAndQueues(out Device, out GraphicsQueue, out PresentQueue);
 		InitCommandPool(out CommandPool);
 	}
 
@@ -197,8 +197,8 @@ public sealed unsafe class VulkanLogicalDevice : LogicalDevice
 	{
 		return queue switch
 		{
-			DeviceQueue.Graphics => _graphicsQueue,
-			DeviceQueue.Present => _presentQueue,
+			DeviceQueue.Graphics => GraphicsQueue,
+			DeviceQueue.Present => PresentQueue,
 		};
 	}
 

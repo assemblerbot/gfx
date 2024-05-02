@@ -7,6 +7,12 @@ public abstract class SwapChain : IDisposable
 
 	public abstract void Dispose();
 
-	public abstract void      WaitForFence(int     swapChainBufferIndex, ulong    timeout                   = ulong.MaxValue);
+	public abstract void WaitForFence(int swapChainBufferIndex, ulong timeout = ulong.MaxValue);
+	public abstract void ResetFence(int   swapChainBufferIndex);
+	
 	public abstract GfxResult AcquireNextImage(int swapChainBufferIndex, ref uint imageIndex, ulong timeout = ulong.MaxValue);
+
+	public abstract void Submit(int swapChainBufferIndex, CommandBuffer commandBuffer);
+
+	public abstract void Present(int swapChainBufferIndex, uint imageIndex);
 }

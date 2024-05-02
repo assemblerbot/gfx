@@ -13,7 +13,7 @@ public sealed unsafe class VulkanGraphicsPipeline : GraphicsPipeline
 {
 	private readonly VulkanApi                _api;
 	private readonly VulkanLogicalDevice      _logicalDevice;
-	private readonly Silk.NET.Vulkan.Pipeline _pipeline;
+	internal readonly Silk.NET.Vulkan.Pipeline Pipeline;
 	
 	public VulkanGraphicsPipeline(VulkanApi api, VulkanLogicalDevice logicalDevice, GraphicsPipelineOptions options)
 	{
@@ -193,19 +193,25 @@ public sealed unsafe class VulkanGraphicsPipeline : GraphicsPipeline
 		colorBlendState.BlendConstants[2] = options.ColorBlendState.BlendConstants[2];
 		colorBlendState.BlendConstants[3] = options.ColorBlendState.BlendConstants[3];
 
-		VkDynamicState* dynamicStates = stackalloc VkDynamicState[options.DynamicState.DynamicStates.Length];
-		for (int i = 0; i < options.DynamicState.DynamicStates.Length; ++i)
+		PipelineDynamicStateCreateInfo* dynamicStatePtr = null;
+		if (options.DynamicState.DynamicStates is not null)
 		{
-			dynamicStates[i] = options.DynamicState.DynamicStates[i].ToVulkan();
+			VkDynamicState* dynamicStates = stackalloc VkDynamicState[options.DynamicState.DynamicStates.Length];
+			for (int i = 0; i < options.DynamicState.DynamicStates.Length; ++i)
+			{
+				dynamicStates[i] = options.DynamicState.DynamicStates[i].ToVulkan();
+			}
+
+			PipelineDynamicStateCreateInfo dynamicState = new()
+			                                              {
+				                                              SType             = StructureType.PipelineDynamicStateCreateInfo,
+				                                              DynamicStateCount = (uint) options.DynamicState.DynamicStates.Length,
+				                                              PDynamicStates    = dynamicStates,
+			                                              };
+
+			dynamicStatePtr = &dynamicState;
 		}
 
-		PipelineDynamicStateCreateInfo dynamicState = new()
-		                                              {
-			                                              SType             = StructureType.PipelineDynamicStateCreateInfo,
-			                                              DynamicStateCount = (uint)options.DynamicState.DynamicStates.Length,
-			                                              PDynamicStates    = dynamicStates,
-		                                              };
-		
 		GraphicsPipelineCreateInfo pipelineInfo = new()
 		                                          {
 			                                          SType      = StructureType.GraphicsPipelineCreateInfo,
@@ -223,7 +229,7 @@ public sealed unsafe class VulkanGraphicsPipeline : GraphicsPipeline
 			                                          PMultisampleState   = &multisampleState,
 			                                          PDepthStencilState  = &depthStencilState,
 			                                          PColorBlendState    = &colorBlendState,
-			                                          PDynamicState       = &dynamicState,
+			                                          PDynamicState       = dynamicStatePtr,
 				                                          
 			                                          Layout     = ((VulkanPipelineLayout)options.Layout).PipelineLayout,
 			                                          RenderPass = ((VulkanRenderPass)options.RenderPass).RenderPass,
@@ -233,7 +239,7 @@ public sealed unsafe class VulkanGraphicsPipeline : GraphicsPipeline
 			                                          // BasePipelineIndex = ??? not supported yet
 		                                          };
 
-		Result result = _api.Vk.CreateGraphicsPipelines(_logicalDevice.Device, default, 1, pipelineInfo, null, out _pipeline);
+		Result result = _api.Vk.CreateGraphicsPipelines(_logicalDevice.Device, default, 1, pipelineInfo, null, out Pipeline);
 		if (result != Result.Success)
 		{
 			throw new GfxException($"Failed to create graphics pipeline! Result:{result}");
@@ -242,6 +248,6 @@ public sealed unsafe class VulkanGraphicsPipeline : GraphicsPipeline
 
 	public override void Dispose()
 	{
-		_api.Vk.DestroyPipeline(_logicalDevice.Device, _pipeline, null);
+		_api.Vk.DestroyPipeline(_logicalDevice.Device, Pipeline, null);
 	}
 }
