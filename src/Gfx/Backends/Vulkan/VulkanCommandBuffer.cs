@@ -63,8 +63,7 @@ public sealed unsafe class VulkanCommandBuffer : CommandBuffer
 			                                          }
 		                                          };
 
-		ClearValue[] clearValues = new ClearValue[]
-		                           {
+		ClearValue[] clearValues = {
 			                           new()
 			                           {
 				                           Color = new() {Float32_0 = r, Float32_1 = g, Float32_2 = b, Float32_3 = a} 

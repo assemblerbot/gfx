@@ -16,7 +16,8 @@ internal unsafe class GfxTestApplication
 		public Vector4 Color;
 	}
 
-	private const int _framesInFlight = 2;
+	private const int         _framesInFlight = 2;
+	private const SampleCount _sampleCount    = SampleCount.Count2; // TODO - device dependent, Count1 crashes! fix!
 
 	private const GraphicsBackend _graphicsBackend = GraphicsBackend.Vulkan;
 	private       IWindow         _window;
@@ -137,7 +138,7 @@ internal unsafe class GfxTestApplication
 
 	private void CreateSwapChain()
 	{
-		_swapChain = _logicalDevice!.CreateSwapChain(new SwapChainOptions(DeviceFormat.B8G8R8Srgb, true, _framesInFlight));
+		_swapChain = _logicalDevice!.CreateSwapChain(new SwapChainOptions(DeviceFormat.B8G8R8Srgb, true, _framesInFlight, _sampleCount));
 	}
 
 	private void CreateMesh()
@@ -307,7 +308,7 @@ internal unsafe class GfxTestApplication
 				new PipelineTessellationStateOptions(0),
 				new PipelineViewportStateOptions(new Viewport[]{new Viewport(0,0,_swapChain.Width,_swapChain.Height,0,1)}, new Scissor[]{new Scissor(0,0,_swapChain.Width,_swapChain.Height)}),
 				new PipelineRasterizationStateOptions(false, false, PolygonMode.Fill, CullMode.Back, FrontFace.CounterClockwise, false, 0, 0, 0, 1),
-				new PipelineMultisampleStateOptions(SampleCount.Count1, false, 0, default, false, false),
+				new PipelineMultisampleStateOptions(_sampleCount, false, 0, default, false, false),
 				new PipelineDepthStencilStateOptions(DepthStencilStateCreateFlags.None, true, true, CompareOp.Less, false, 0, 0, false, default, default),
 				new PipelineColorBlendStateOptions(PipelineColorBlendStateCreateFlags.None, false, default,
 					new PipelineColorBlendAttachmentState[]{
@@ -324,6 +325,7 @@ internal unsafe class GfxTestApplication
 
 	private void DebugMessageLog(DebugMessageSeverity severity, DebugMessageKind kind, string message)
 	{
+		Console.Out.WriteLine($"Severity:{severity} Kind:{kind} Message:{message}");
 	}
 
 	#region Main callbacks
@@ -378,7 +380,9 @@ internal unsafe class GfxTestApplication
 		
 		commandBuffer.EndRenderPass();
 		commandBuffer.End();
-		
+
+		_swapChain.Submit(_swapChainBufferIndex, commandBuffer);
+		_swapChain.Present(_swapChainBufferIndex, imageIndex);
 
 		_swapChainBufferIndex = (_swapChainBufferIndex + 1) % _framesInFlight;
 		

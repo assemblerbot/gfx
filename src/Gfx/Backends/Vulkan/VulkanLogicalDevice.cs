@@ -184,6 +184,7 @@ public sealed unsafe class VulkanLogicalDevice : LogicalDevice
 		CommandPoolCreateInfo poolInfo = new()
 		                                 {
 			                                 SType            = StructureType.CommandPoolCreateInfo,
+			                                 Flags = CommandPoolCreateFlags.ResetCommandBufferBit,	// TODO - customizable?
 			                                 QueueFamilyIndex = PhysicalDevice.GraphicsQueueFamily!.Value,
 		                                 };
 

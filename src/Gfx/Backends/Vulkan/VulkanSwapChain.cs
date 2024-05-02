@@ -58,9 +58,9 @@ public sealed unsafe class VulkanSwapChain : SwapChain
 		InitSwapChain(options.FrameBufferDeviceFormat, options.NeedDepthStencil, ref _khrSwapChain, ref _swapChain, ref _swapChainImages, ref SwapChainImageFormat, ref SwapChainDepthStencilFormat, ref _swapChainExtent);
 		InitImageViews(out _swapChainImageViews);
 		InitRenderPass(out _renderPass);
-		InitFrameBuffers(out SwapChainFramebuffers);
 		InitColorResources(ref _colorImage, ref _colorImageMemory, ref _colorImageView);
 		InitDepthResources(ref _depthImage, ref _depthImageMemory, ref _depthImageView);
+		InitFrameBuffers(out SwapChainFramebuffers);
 		InitSyncObjects(out _imageAvailableSemaphores, out _renderFinishedSemaphores, out _framesInFlightFences, out _imagesInFlightFences);
 	}
 
@@ -291,22 +291,29 @@ public sealed unsafe class VulkanSwapChain : SwapChain
 
 		for (int i = 0; i < _swapChainImageViews.Length; i++)
 		{
-			ImageView attachment = _swapChainImageViews[i];
+			var attachments = new[] {_colorImageView, _depthImageView, _swapChainImageViews[i]};
 
-			FramebufferCreateInfo framebufferInfo = new()
-			                                        {
-				                                        SType           = StructureType.FramebufferCreateInfo,
-				                                        RenderPass      = _renderPass.RenderPass,
-				                                        AttachmentCount = 1,
-				                                        PAttachments    = &attachment,
-				                                        Width           = _swapChainExtent.Width,
-				                                        Height          = _swapChainExtent.Height,
-				                                        Layers          = 1,
-			                                        };
-
-			if (_api.Vk.CreateFramebuffer(_logicalDevice.Device, framebufferInfo, null, out frameBuffers[i]) != Result.Success)
+			fixed (ImageView* attachmentsPtr = attachments)
 			{
-				throw new GfxException("Failed to create frame buffer!");
+				//ImageView attachment = _swapChainImageViews[i];
+
+				FramebufferCreateInfo framebufferInfo = new()
+				                                        {
+					                                        SType           = StructureType.FramebufferCreateInfo,
+					                                        RenderPass      = _renderPass.RenderPass,
+					                                        //AttachmentCount = 1,
+					                                        //PAttachments    = &attachment,
+					                                        AttachmentCount = (uint)attachments.Length,
+					                                        PAttachments = attachmentsPtr,
+					                                        Width           = _swapChainExtent.Width,
+					                                        Height          = _swapChainExtent.Height,
+					                                        Layers          = 1,
+				                                        };
+
+				if (_api.Vk.CreateFramebuffer(_logicalDevice.Device, framebufferInfo, null, out frameBuffers[i]) != Result.Success)
+				{
+					throw new GfxException("Failed to create frame buffer!");
+				}
 			}
 		}
 	}
@@ -315,7 +322,17 @@ public sealed unsafe class VulkanSwapChain : SwapChain
 	{
 		VkFormat colorFormat = SwapChainImageFormat;
 	
-		CreateImage(_swapChainExtent.Width, _swapChainExtent.Height, 1, MsaaSampleCount, colorFormat, ImageTiling.Optimal, ImageUsageFlags.TransientAttachmentBit | ImageUsageFlags.ColorAttachmentBit, MemoryPropertyFlags.DeviceLocalBit, ref colorImage, ref colorImageMemory);
+		CreateImage(_swapChainExtent.Width,
+			_swapChainExtent.Height,
+			1,
+			MsaaSampleCount,
+			colorFormat,
+			ImageTiling.Optimal,
+			ImageLayout.Undefined,
+			ImageUsageFlags.TransientAttachmentBit | ImageUsageFlags.ColorAttachmentBit,
+			MemoryPropertyFlags.DeviceLocalBit,
+			ref colorImage,
+			ref colorImageMemory);
 		colorImageView = CreateImageView(colorImage, colorFormat, ImageAspectFlags.ColorBit, 1);
 	}
 	
@@ -331,7 +348,17 @@ public sealed unsafe class VulkanSwapChain : SwapChain
 
 		VkFormat depthFormat = SwapChainDepthStencilFormat;
 	
-		CreateImage(_swapChainExtent.Width, _swapChainExtent.Height, 1, MsaaSampleCount, depthFormat, ImageTiling.Optimal, ImageUsageFlags.DepthStencilAttachmentBit, MemoryPropertyFlags.DeviceLocalBit, ref depthImage, ref depthImageMemory);
+		CreateImage(_swapChainExtent.Width,
+			_swapChainExtent.Height,
+			1,
+			MsaaSampleCount,
+			depthFormat,
+			ImageTiling.Optimal,
+			ImageLayout.Undefined,
+			ImageUsageFlags.DepthStencilAttachmentBit,
+			MemoryPropertyFlags.DeviceLocalBit,
+			ref depthImage,
+			ref depthImageMemory);
 		depthImageView = CreateImageView(depthImage, depthFormat, ImageAspectFlags.DepthBit, 1);
 	}
 
@@ -456,7 +483,7 @@ public sealed unsafe class VulkanSwapChain : SwapChain
 		return imageView;
 	}
 	
-	private void CreateImage(uint width, uint height, uint mipLevels, SampleCountFlags numSamples, VkFormat format, ImageTiling tiling, ImageUsageFlags usage, MemoryPropertyFlags properties, ref Image image, ref VkDeviceMemory imageMemory)
+	private void CreateImage(uint width, uint height, uint mipLevels, SampleCountFlags numSamples, VkFormat format, ImageTiling tiling, ImageLayout layout, ImageUsageFlags usage, MemoryPropertyFlags properties, ref Image image, ref VkDeviceMemory imageMemory)
 	{
 		ImageCreateInfo imageInfo = new()
 		                            {
@@ -472,7 +499,7 @@ public sealed unsafe class VulkanSwapChain : SwapChain
 			                            ArrayLayers   = 1,
 			                            Format        = format,
 			                            Tiling        = tiling,
-			                            InitialLayout = ImageLayout.Undefined,
+			                            InitialLayout = layout,
 			                            Usage         = usage,
 			                            Samples       = numSamples,
 			                            SharingMode   = VkSharingMode.Exclusive,
