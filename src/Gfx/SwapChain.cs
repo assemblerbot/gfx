@@ -2,8 +2,9 @@ namespace Gfx;
 
 public abstract class SwapChain : IDisposable
 {
-	public abstract uint Width  { get; }
-	public abstract uint Height { get; }
+	public abstract uint Width          { get; }
+	public abstract uint Height         { get; }
+	public abstract int  FramesInFlight { get; }
 
 	public abstract void Dispose();
 

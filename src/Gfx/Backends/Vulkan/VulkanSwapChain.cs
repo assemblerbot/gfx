@@ -10,7 +10,7 @@ namespace Gfx;
 
 public sealed unsafe class VulkanSwapChain : SwapChain
 {
-	private readonly int _maxFramesInFlight;      // max number of frames that can be rendered at the same time
+	private readonly int _framesInFlight;      // max number of frames that can be rendered at the same time
 	
 	private readonly VulkanApi            _api;
 	private readonly VulkanPhysicalDevice _physicalDevice;
@@ -25,7 +25,7 @@ public sealed unsafe class VulkanSwapChain : SwapChain
 	internal VkFormat       SwapChainDepthStencilFormat;
 	private  Extent2D       _swapChainExtent;
 	private  ImageView[]?   _swapChainImageViews;
-	internal  Framebuffer[]? SwapChainFramebuffers;
+	internal Framebuffer[]? SwapChainFramebuffers;
 	
 	private Image          _colorImage;
 	private VkDeviceMemory _colorImageMemory;
@@ -44,18 +44,18 @@ public sealed unsafe class VulkanSwapChain : SwapChain
 	
 	internal bool HasDepthStencil => SwapChainDepthStencilFormat != VkFormat.Undefined;
 
-	public override uint Width  => _swapChainExtent.Width;
-	public override uint Height => _swapChainExtent.Height;
+	public override uint Width          => _swapChainExtent.Width;
+	public override uint Height         => _swapChainExtent.Height;
+	public override int  FramesInFlight => _framesInFlight; 
 	
 	public VulkanSwapChain(VulkanApi api, VulkanPhysicalDevice physicalDevice, VulkanLogicalDevice logicalDevice, SwapChainOptions options)
 	{
 		_api               = api;
 		_physicalDevice    = physicalDevice;
 		_logicalDevice     = logicalDevice;
-		_maxFramesInFlight = options.MaxFramesInFlight;
 
 		InitMsaaSampleCount(out MsaaSampleCount, options.MsaaSampleCount);
-		InitSwapChain(options.FrameBufferDeviceFormat, options.NeedDepthStencil, ref _khrSwapChain, ref _swapChain, ref _swapChainImages, ref SwapChainImageFormat, ref SwapChainDepthStencilFormat, ref _swapChainExtent);
+		InitSwapChain(options.FrameBufferDeviceFormat, (uint)options.MaxFramesInFlight, options.NeedDepthStencil, out _framesInFlight, ref _khrSwapChain, ref _swapChain, ref _swapChainImages, ref SwapChainImageFormat, ref SwapChainDepthStencilFormat, ref _swapChainExtent);
 		InitImageViews(out _swapChainImageViews);
 		InitRenderPass(out _renderPass);
 		InitColorResources(ref _colorImage, ref _colorImageMemory, ref _colorImageView);
@@ -73,6 +73,10 @@ public sealed unsafe class VulkanSwapChain : SwapChain
 			_api.Vk.FreeMemory(_logicalDevice.Device, _depthImageMemory, null);
 		}
 
+		_api.Vk.DestroyImageView(_logicalDevice.Device, _colorImageView, null);
+		_api.Vk.DestroyImage(_logicalDevice.Device, _colorImage, null);
+		_api.Vk.FreeMemory(_logicalDevice.Device, _colorImageMemory, null);
+
 		foreach (var framebuffer in SwapChainFramebuffers!)
 		{
 			_api.Vk.DestroyFramebuffer(_logicalDevice.Device, framebuffer, null);
@@ -89,16 +93,16 @@ public sealed unsafe class VulkanSwapChain : SwapChain
 
 		// for (int i = 0; i < _swapChainImages!.Length; i++)
 		// {
-		// 	_api.Vk.DestroyBuffer(_device, uniformBuffers![i], null);
-		// 	_api.Vk.FreeMemory(_device, uniformBuffersMemory![i], null);
+		// 	_api.Vk.DestroyBuffer(_logicalDevice.Device, uniformBuffers![i], null);
+		// 	_api.Vk.FreeMemory(_logicalDevice.Device, uniformBuffersMemory![i], null);
 		// }
 	}
 
 	public override void Dispose()
 	{
 		DisposeOnResized();
-		
-		for (int i = 0; i < _maxFramesInFlight; ++i)
+
+		for (int i = 0; i < _framesInFlight; ++i)
 		{
 			_api.Vk.DestroySemaphore(_logicalDevice.Device, _renderFinishedSemaphores![i], null);
 			_api.Vk.DestroySemaphore(_logicalDevice.Device, _imageAvailableSemaphores![i], null);
@@ -130,14 +134,14 @@ public sealed unsafe class VulkanSwapChain : SwapChain
 
 		SubmitInfo submitInfo = new()
 		                        {
-			                        SType = StructureType.SubmitInfo,
-			                        WaitSemaphoreCount = 1,
-			                        PWaitSemaphores = waitSemaphores,
-			                        PWaitDstStageMask = waitStages,
-			                        CommandBufferCount = 1,
-			                        PCommandBuffers = &buffer,
+			                        SType                = StructureType.SubmitInfo,
+			                        WaitSemaphoreCount   = 1,
+			                        PWaitSemaphores      = waitSemaphores,
+			                        PWaitDstStageMask    = waitStages,
+			                        CommandBufferCount   = 1,
+			                        PCommandBuffers      = &buffer,
 			                        SignalSemaphoreCount = 1,
-			                        PSignalSemaphores = signalSemaphores,
+			                        PSignalSemaphores    = signalSemaphores,
 		                        };
 
 		Result result = _api.Vk.QueueSubmit(_logicalDevice.GraphicsQueue, 1, submitInfo, _framesInFlightFences[swapChainBufferIndex]);
@@ -167,6 +171,7 @@ public sealed unsafe class VulkanSwapChain : SwapChain
 
 		Result result = _khrSwapChain.QueuePresent(_logicalDevice.PresentQueue, presentInfo);
 
+		// TODO
 		// if (result == Result.ErrorOutOfDateKhr || result == Result.SuboptimalKhr || frameBufferResized)
 		// {
 		// 	frameBufferResized = false;
@@ -189,7 +194,9 @@ public sealed unsafe class VulkanSwapChain : SwapChain
 
 	private void InitSwapChain(
 		DeviceFormat      desiredDeviceFormat,
+		uint              desiredImageCount,
 		bool              needDepthStencil,
+		out int framesInFlight,
 		ref KhrSwapchain? khrSwapChain,
 		ref SwapchainKHR  swapChain,
 		ref Image[]?      swapChainImages,
@@ -204,11 +211,17 @@ public sealed unsafe class VulkanSwapChain : SwapChain
 		var presentMode   = ChoosePresentMode(swapChainSupport.PresentModes);
 		var extent        = ChooseSwapExtent(swapChainSupport.Capabilities);
 
-		var imageCount = swapChainSupport.Capabilities.MinImageCount + 1; // TODO - required image count from options
+		uint imageCount = desiredImageCount;
+		if (imageCount < swapChainSupport.Capabilities.MinImageCount)
+		{
+			imageCount = swapChainSupport.Capabilities.MinImageCount;
+		}
 		if (swapChainSupport.Capabilities.MaxImageCount > 0 && imageCount > swapChainSupport.Capabilities.MaxImageCount)
 		{
 			imageCount = swapChainSupport.Capabilities.MaxImageCount;
 		}
+
+		framesInFlight = (int) imageCount;
 
 		SwapchainCreateInfoKHR createInfo = new()
 		                                    {
@@ -299,12 +312,12 @@ public sealed unsafe class VulkanSwapChain : SwapChain
 
 				FramebufferCreateInfo framebufferInfo = new()
 				                                        {
-					                                        SType           = StructureType.FramebufferCreateInfo,
-					                                        RenderPass      = _renderPass.RenderPass,
+					                                        SType      = StructureType.FramebufferCreateInfo,
+					                                        RenderPass = _renderPass.RenderPass,
 					                                        //AttachmentCount = 1,
 					                                        //PAttachments    = &attachment,
 					                                        AttachmentCount = (uint)attachments.Length,
-					                                        PAttachments = attachmentsPtr,
+					                                        PAttachments    = attachmentsPtr,
 					                                        Width           = _swapChainExtent.Width,
 					                                        Height          = _swapChainExtent.Height,
 					                                        Layers          = 1,
@@ -369,9 +382,9 @@ public sealed unsafe class VulkanSwapChain : SwapChain
 		out Fence[]?       imagesInFlight
 	)
 	{
-		imageAvailableSemaphores = new VkSemaphore[_maxFramesInFlight];
-		renderFinishedSemaphores = new VkSemaphore[_maxFramesInFlight];
-		inFlightFences           = new Fence[_maxFramesInFlight];
+		imageAvailableSemaphores = new VkSemaphore[_framesInFlight];
+		renderFinishedSemaphores = new VkSemaphore[_framesInFlight];
+		inFlightFences           = new Fence[_framesInFlight];
 		imagesInFlight           = new Fence[_swapChainImages!.Length];
 
 		SemaphoreCreateInfo semaphoreInfo = new()
@@ -385,7 +398,7 @@ public sealed unsafe class VulkanSwapChain : SwapChain
 			                            Flags = FenceCreateFlags.SignaledBit,
 		                            };
 
-		for (var i = 0; i < _maxFramesInFlight; i++)
+		for (var i = 0; i < _framesInFlight; i++)
 		{
 			if (_api.Vk.CreateSemaphore(_logicalDevice.Device, semaphoreInfo, null, out imageAvailableSemaphores[i]) != Result.Success ||
 			    _api.Vk.CreateSemaphore(_logicalDevice.Device, semaphoreInfo, null, out renderFinishedSemaphores[i]) != Result.Success ||

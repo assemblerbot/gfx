@@ -16,7 +16,7 @@ internal unsafe class GfxTestApplication
 		public Vector4 Color;
 	}
 
-	private const int         _framesInFlight = 2;
+	private const int         _desiredFramesInFlight = 2;
 	private const SampleCount _sampleCount    = SampleCount.Count2; // TODO - device dependent, Count1 crashes! fix!
 
 	private const GraphicsBackend _graphicsBackend = GraphicsBackend.Vulkan;
@@ -138,7 +138,7 @@ internal unsafe class GfxTestApplication
 
 	private void CreateSwapChain()
 	{
-		_swapChain = _logicalDevice!.CreateSwapChain(new SwapChainOptions(DeviceFormat.B8G8R8Srgb, true, _framesInFlight, _sampleCount));
+		_swapChain = _logicalDevice!.CreateSwapChain(new SwapChainOptions(DeviceFormat.B8G8R8Srgb, true, _desiredFramesInFlight, _sampleCount));
 	}
 
 	private void CreateMesh()
@@ -252,8 +252,8 @@ internal unsafe class GfxTestApplication
 
 	private void CreateCommandBuffers()
 	{
-		_commandBuffers = new CommandBuffer[_framesInFlight];
-		for (int i = 0; i < _framesInFlight; ++i)
+		_commandBuffers = new CommandBuffer[_swapChain.FramesInFlight];
+		for (int i = 0; i < _swapChain.FramesInFlight; ++i)
 		{
 			_commandBuffers[i] = _logicalDevice.CreateCommandBuffer(new CommandBufferOptions(CommandBufferLevel.Primary));
 		}
@@ -384,7 +384,7 @@ internal unsafe class GfxTestApplication
 		_swapChain.Submit(_swapChainBufferIndex, commandBuffer);
 		_swapChain.Present(_swapChainBufferIndex, imageIndex);
 
-		_swapChainBufferIndex = (_swapChainBufferIndex + 1) % _framesInFlight;
+		_swapChainBufferIndex = (_swapChainBufferIndex + 1) % _swapChain.FramesInFlight;
 		
 	}
 
