@@ -38,7 +38,7 @@ public sealed unsafe class VulkanSwapChain : SwapChain
 	private VkSemaphore[]? _imageAvailableSemaphores;
 	private VkSemaphore[]? _renderFinishedSemaphores;
 	private Fence[]?       _framesInFlightFences;
-	private Fence[]?       _imagesInFlightFences;
+	//private Fence[]?       _imagesInFlightFences;
 
 	private VulkanRenderPass? _renderPass;
 	
@@ -61,7 +61,7 @@ public sealed unsafe class VulkanSwapChain : SwapChain
 		InitColorResources(ref _colorImage, ref _colorImageMemory, ref _colorImageView);
 		InitDepthResources(ref _depthImage, ref _depthImageMemory, ref _depthImageView);
 		InitFrameBuffers(out SwapChainFramebuffers);
-		InitSyncObjects(out _imageAvailableSemaphores, out _renderFinishedSemaphores, out _framesInFlightFences, out _imagesInFlightFences);
+		InitSyncObjects(out _imageAvailableSemaphores, out _renderFinishedSemaphores, out _framesInFlightFences);
 	}
 
 	public void DisposeOnResized()
@@ -378,14 +378,12 @@ public sealed unsafe class VulkanSwapChain : SwapChain
 	private void InitSyncObjects(
 		out VkSemaphore[]? imageAvailableSemaphores,
 		out VkSemaphore[]? renderFinishedSemaphores,
-		out Fence[]?       inFlightFences,
-		out Fence[]?       imagesInFlight
+		out Fence[]?       inFlightFences
 	)
 	{
 		imageAvailableSemaphores = new VkSemaphore[_framesInFlight];
 		renderFinishedSemaphores = new VkSemaphore[_framesInFlight];
 		inFlightFences           = new Fence[_framesInFlight];
-		imagesInFlight           = new Fence[_swapChainImages!.Length];
 
 		SemaphoreCreateInfo semaphoreInfo = new()
 		                                    {
