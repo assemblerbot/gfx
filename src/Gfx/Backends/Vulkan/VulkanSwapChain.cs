@@ -55,7 +55,7 @@ public sealed unsafe class VulkanSwapChain : SwapChain
 		_logicalDevice     = logicalDevice;
 
 		InitMsaaSampleCount(out MsaaSampleCount, options.MsaaSampleCount);
-		InitSwapChain(options.FrameBufferDeviceFormat, (uint)options.MaxFramesInFlight, options.NeedDepthStencil, out _framesInFlight, ref _khrSwapChain, ref _swapChain, ref _swapChainImages, ref SwapChainImageFormat, ref SwapChainDepthStencilFormat, ref _swapChainExtent);
+		InitSwapChain((uint)options.MaxFramesInFlight, options.NeedDepthStencil, out _framesInFlight, ref _khrSwapChain, ref _swapChain, ref _swapChainImages, ref SwapChainImageFormat, ref SwapChainDepthStencilFormat, ref _swapChainExtent);
 		InitImageViews(out _swapChainImageViews);
 		InitRenderPass(out _renderPass);
 		InitColorResources(ref _colorImage, ref _colorImageMemory, ref _colorImageView);
@@ -193,7 +193,6 @@ public sealed unsafe class VulkanSwapChain : SwapChain
 	}
 
 	private void InitSwapChain(
-		DeviceFormat      desiredDeviceFormat,
 		uint              desiredImageCount,
 		bool              needDepthStencil,
 		out int framesInFlight,
@@ -207,7 +206,7 @@ public sealed unsafe class VulkanSwapChain : SwapChain
 	{
 		VulkanSwapChainSupportDetails swapChainSupport = _physicalDevice.SwapChainSupportDetails!;
 
-		var surfaceFormat = ChooseSwapSurfaceFormat(swapChainSupport.Formats, desiredDeviceFormat.ToVulkan());
+		var surfaceFormat = ChooseSwapSurfaceFormat(swapChainSupport.Formats);
 		var presentMode   = ChoosePresentMode(swapChainSupport.PresentModes);
 		var extent        = ChooseSwapExtent(swapChainSupport.Capabilities);
 
@@ -414,13 +413,16 @@ public sealed unsafe class VulkanSwapChain : SwapChain
 	#endregion
 	
 	#region Initialization helpers
-	private SurfaceFormatKHR ChooseSwapSurfaceFormat(IReadOnlyList<SurfaceFormatKHR> availableFormats, VkFormat desiredFormat)
+	private SurfaceFormatKHR ChooseSwapSurfaceFormat(IReadOnlyList<SurfaceFormatKHR> availableFormats)
 	{
 		foreach (var availableFormat in availableFormats)
 		{
-			if (availableFormat.Format == desiredFormat && availableFormat.ColorSpace == ColorSpaceKHR.SpaceSrgbNonlinearKhr)
+			if (availableFormat.ColorSpace == ColorSpaceKHR.SpaceSrgbNonlinearKhr)
 			{
-				return availableFormat;
+				if (availableFormat.Format is Format.B8G8R8A8Srgb or Format.R8G8B8A8Srgb)
+				{
+					return availableFormat;
+				}
 			}
 		}
 

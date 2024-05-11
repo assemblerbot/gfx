@@ -138,7 +138,7 @@ internal unsafe class GfxTestApplication
 
 	private void CreateSwapChain()
 	{
-		_swapChain = _logicalDevice!.CreateSwapChain(new SwapChainOptions(DeviceFormat.B8G8R8Srgb, true, _desiredFramesInFlight, _sampleCount));
+		_swapChain = _logicalDevice!.CreateSwapChain(new SwapChainOptions(true, _desiredFramesInFlight, _sampleCount));
 	}
 
 	private void CreateMesh()
@@ -372,7 +372,7 @@ internal unsafe class GfxTestApplication
 			0.5f,0.2f,0.1f,1f,
 			1f,0
 		);
-
+ 
 		commandBuffer.BindPipeline(_pipeline);
 		commandBuffer.BindVertexBuffer(_vertexBuffer, 0, 0);
 
